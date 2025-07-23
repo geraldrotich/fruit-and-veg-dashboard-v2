@@ -17,10 +17,34 @@
       min-height: 100vh;
     }
 
-    h1 {
-      margin-top: 80px;
-      font-size: 28px;
-      color: #222;
+    header {
+      width: 100%;
+      background: #008800;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .logout-btn {
+      background: #fff;
+      color: #008800;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      background: #f0f0f0;
     }
 
     .nav {
@@ -49,11 +73,18 @@
       background-color: #006600;
       transform: translateY(-2px);
     }
+
+    #adminLink {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Fruit & Veg Dashboard</h1>
+  <header>
+    <h1>Fruit & Veg Dashboard</h1>
+    <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
+  </header>
 
   <div class="nav">
     <a href="dashboard-products.html">Dashboard</a>
@@ -62,7 +93,45 @@
     <a href="vendor-contacts.html">Vendor Contacts</a>
     <a href="pdf-reader.html">PDF Reader</a>
     <a href="top-100-items.html">Top 100 Items</a>
+    <a id="adminLink" href="admin.html">Admin Panel</a>
   </div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
+      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
+      projectId: "fruit-and-veg-dashboard-v2",
+      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      messagingSenderId: "742156994835",
+      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    const adminLink = document.getElementById("adminLink");
+
+    onAuthStateChanged(auth, (user) => {
+      const role = localStorage.getItem("role");
+
+      if (user) {
+        logoutBtn.style.display = "inline-block";
+
+        if (role === "admin") {
+          adminLink.style.display = "block";
+        }
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      localStorage.removeItem("role");
+      window.location.href = "login.html";
+    });
+  </script>
 </body>
 </html>
