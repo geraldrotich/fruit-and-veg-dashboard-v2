@@ -12,9 +12,7 @@
       margin: 40px auto;
       padding: 1rem;
     }
-    h1 {
-      text-align: center;
-    }
+    h1 { text-align: center; }
     .vendor {
       border: 1px solid #ccc;
       padding: 1rem;
@@ -24,9 +22,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .form-group {
-      margin-bottom: 10px;
-    }
+    .form-group { margin-bottom: 10px; }
     .action-button {
       width: 1cm;
       height: 1cm;
@@ -60,48 +56,60 @@
 
   <div id="vendorList" style="margin-top: 30px;"></div>
 
-  <script>
-    let vendors = [];
-    let editIndex = null;
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { db } from './firebase.js';
+    import {
+      collection, addDoc, getDocs, updateDoc, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+    const form = document.getElementById('form');
+    const nameInput = document.getElementById('vendorName');
+    const phoneInput = document.getElementById('vendorPhone');
+    const emailInput = document.getElementById('vendorEmail');
+    const vendorList = document.getElementById('vendorList');
+
+    const vendorsRef = collection(db, "vendors");
+    let editingDocId = null;
 
     function showAddForm() {
-      document.getElementById('vendorName').value = '';
-      document.getElementById('vendorPhone').value = '';
-      document.getElementById('vendorEmail').value = '';
-      document.getElementById('form').style.display = 'block';
-      editIndex = null;
+      nameInput.value = '';
+      phoneInput.value = '';
+      emailInput.value = '';
+      editingDocId = null;
+      form.style.display = 'block';
     }
 
     function hideForm() {
-      document.getElementById('form').style.display = 'none';
+      form.style.display = 'none';
     }
 
-    function saveVendor() {
-      const name = document.getElementById('vendorName').value.trim();
-      const phone = document.getElementById('vendorPhone').value.trim();
-      const email = document.getElementById('vendorEmail').value.trim();
+    async function saveVendor() {
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const email = emailInput.value.trim();
 
       if (!name || !phone || !email) {
-        return alert("Please fill in all fields.");
+        alert("Please fill in all fields.");
+        return;
       }
 
-      const newVendor = { name, phone, email };
-
-      if (editIndex !== null) {
-        vendors[editIndex] = newVendor;
+      if (editingDocId) {
+        const vendorDoc = doc(db, "vendors", editingDocId);
+        await updateDoc(vendorDoc, { name, phone, email });
       } else {
-        vendors.push(newVendor);
+        await addDoc(vendorsRef, { name, phone, email });
       }
 
-      renderVendors();
       hideForm();
+      loadVendors();
     }
 
-    function renderVendors() {
-      const container = document.getElementById('vendorList');
-      container.innerHTML = '';
-
-      vendors.forEach((vendor, index) => {
+    async function loadVendors() {
+      vendorList.innerHTML = '';
+      const snapshot = await getDocs(vendorsRef);
+      snapshot.forEach(docSnap => {
+        const vendor = docSnap.data();
         const div = document.createElement('div');
         div.className = 'vendor';
         div.innerHTML = `
@@ -111,29 +119,30 @@
             <small>${vendor.email}</small>
           </div>
           <div>
-            <button class="action-button" onclick="editVendor(${index})">✏️</button>
-            <button class="action-button" onclick="deleteVendor(${index})">🗑️</button>
+            <button class="action-button" onclick="editVendor('${docSnap.id}', '${vendor.name}', '${vendor.phone}', '${vendor.email}')">✏️</button>
+            <button class="action-button" onclick="deleteVendor('${docSnap.id}')">🗑️</button>
           </div>
         `;
-        container.appendChild(div);
+        vendorList.appendChild(div);
       });
     }
 
-    function editVendor(index) {
-      const vendor = vendors[index];
-      document.getElementById('vendorName').value = vendor.name;
-      document.getElementById('vendorPhone').value = vendor.phone;
-      document.getElementById('vendorEmail').value = vendor.email;
-      document.getElementById('form').style.display = 'block';
-      editIndex = index;
-    }
+    window.editVendor = (id, name, phone, email) => {
+      nameInput.value = name;
+      phoneInput.value = phone;
+      emailInput.value = email;
+      editingDocId = id;
+      form.style.display = 'block';
+    };
 
-    function deleteVendor(index) {
+    window.deleteVendor = async (id) => {
       if (confirm("Are you sure you want to delete this vendor?")) {
-        vendors.splice(index, 1);
-        renderVendors();
+        await deleteDoc(doc(db, "vendors", id));
+        loadVendors();
       }
-    }
+    };
+
+    loadVendors();
   </script>
 </body>
 </html>
