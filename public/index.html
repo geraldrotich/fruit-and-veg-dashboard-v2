@@ -8,96 +8,58 @@
   <style>
     body {
       font-family: 'Lexend', sans-serif;
-      background-color: #ffffff;
-      margin: 0;
-      padding: 0;
+      background: #f5f5f5;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      color: #008800;
+      margin-bottom: 40px;
+    }
+    .button-container {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+      gap: 15px;
+      max-width: 300px;
+      margin: auto;
     }
-
-    header {
-      width: 100%;
-      background: #008800;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .logout-btn {
-      background: #fff;
-      color: #008800;
+    a button {
+      padding: 12px;
+      font-size: 16px;
       border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      border-radius: 5px;
+      background-color: #008800;
+      color: white;
       cursor: pointer;
       font-family: 'Lexend', sans-serif;
-      font-size: 14px;
     }
-
-    .logout-btn:hover {
-      background: #f0f0f0;
+    a button:hover {
+      opacity: 0.9;
     }
-
-    .nav {
-      margin-top: 40px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 15px;
-      width: 90%;
-      max-width: 300px;
-    }
-
-    .nav a {
-      display: block;
-      text-align: center;
-      padding: 14px 20px;
-      text-decoration: none;
-      font-size: 16px;
-      color: #fff;
-      background-color: #008800;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: all 0.2s ease;
-    }
-
-    .nav a:hover {
-      background-color: #006600;
-      transform: translateY(-2px);
-    }
-
-    #adminLink {
-      display: none;
+    #logoutBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #cc0000;
     }
   </style>
 </head>
 <body>
+  <h1>Fruit & Veg Dashboard</h1>
 
-  <header>
-    <h1>Fruit & Veg Dashboard</h1>
-    <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
-  </header>
-
-  <div class="nav">
-    <a href="products.html">Products</a>
-    <a href="standing-orders.html">Standing Orders</a>
-    <a href="vendor-contacts.html">Vendor Contacts</a>
-    <a href="pdf-reader.html">PDF Reader</a>
-    <a href="top-100-items.html">Top 100 Items</a>
-    <a id="adminLink" href="admin.html">Admin Panel</a>
+  <div class="button-container" id="buttonContainer">
+    <!-- Buttons will be injected here based on role -->
   </div>
+
+  <button id="logoutBtn" style="display:none;">Logout</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
@@ -112,25 +74,39 @@
     const auth = getAuth(app);
 
     const logoutBtn = document.getElementById("logoutBtn");
-    const adminLink = document.getElementById("adminLink");
+    const buttonContainer = document.getElementById("buttonContainer");
 
     onAuthStateChanged(auth, (user) => {
-      const role = localStorage.getItem("role");
-
       if (user) {
-        logoutBtn.style.display = "inline-block";
+        const role = localStorage.getItem("role");
 
-        if (role === "admin") {
-          adminLink.style.display = "block";
-        }
+        // Common buttons for both admin and user
+        const pages = [
+          { name: "Vendor Contacts", href: "vendor-contacts.html" },
+          { name: "Standing Orders", href: "standing-orders.html" },
+          { name: "Top 100 Items", href: "top-items.html" },
+          { name: "PDF Reader", href: "pdf-reader.html" },
+          { name: "Products", href: "products.html" }
+        ];
+
+        pages.forEach((page) => {
+          const link = document.createElement("a");
+          link.href = page.href;
+          link.innerHTML = `<button>${page.name}</button>`;
+          buttonContainer.appendChild(link);
+        });
+
+        logoutBtn.style.display = "inline-block";
+      } else {
+        window.location.href = "login.html";
       }
     });
 
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.onclick = async () => {
       await signOut(auth);
       localStorage.removeItem("role");
       window.location.href = "login.html";
-    });
+    };
   </script>
 </body>
 </html>
