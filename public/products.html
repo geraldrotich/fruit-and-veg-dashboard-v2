@@ -1,11 +1,199 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Products</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Lexend', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .top-bar a {
+      text-decoration: none;
+      color: #008800;
+      font-weight: bold;
+    }
+    h1 {
+      margin: 0;
+    }
+    button {
+      font-family: 'Lexend', sans-serif;
+      background-color: #008800;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #006600;
+    }
+    .product-list {
+      margin-top: 20px;
+    }
+    .product-item {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .product-actions button {
+      margin-left: 8px;
+      width: 1cm;
+      height: 1cm;
+    }
+    input, label {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+      font-family: 'Lexend', sans-serif;
+    }
+    #productForm {
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Products Page</h1>
-  <p>This is where your product info will go.</p>
-  <a href="index.html">← Back to Home</a>
+  <div class="top-bar">
+    <a href="index.html">Back to Home</a>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
+
+  <h1>Products</h1>
+
+  <div id="productForm" style="display:none;">
+    <label>Product Name
+      <input type="text" id="productName" placeholder="Enter product name" />
+    </label>
+    <label>Vendor Name
+      <input type="text" id="vendorName" placeholder="Enter vendor name" />
+    </label>
+    <button onclick="saveProduct()">Save Product</button>
+  </div>
+
+  <button id="addProductBtn" style="display:none;">Add New Product</button>
+
+  <div class="product-list" id="productList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
+      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
+      projectId: "fruit-and-veg-dashboard-v2",
+      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      messagingSenderId: "742156994835",
+      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let userRole = null;
+    const productList = document.getElementById('productList');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const addProductBtn = document.getElementById('addProductBtn');
+    const productForm = document.getElementById('productForm');
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userRole = localStorage.getItem("role");
+        logoutBtn.style.display = "inline-block";
+        if (userRole === "admin") {
+          addProductBtn.style.display = "inline-block";
+          productForm.style.display = "block";
+        }
+        loadProducts();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+      localStorage.removeItem("role");
+      window.location.href = "login.html";
+    };
+
+    async function loadProducts() {
+      productList.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "products"));
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "product-item";
+        div.innerHTML = `
+          <div>
+            <strong>${data.name}</strong><br>
+            Vendor: ${data.vendor || '—'}
+          </div>
+          <div class="product-actions">
+            ${userRole === 'admin' ? `
+              <button onclick="editProduct('${docSnap.id}', '${data.name}', '${data.vendor || ''}')">✏️</button>
+              <button onclick="deleteProduct('${docSnap.id}')">🗑️</button>
+            ` : ''}
+          </div>
+        `;
+        productList.appendChild(div);
+      });
+    }
+
+    window.editProduct = (id, name, vendor) => {
+      document.getElementById('productName').value = name;
+      document.getElementById('vendorName').value = vendor;
+      productForm.dataset.editing = id;
+    }
+
+    window.deleteProduct = async (id) => {
+      await deleteDoc(doc(db, "products", id));
+      loadProducts();
+    }
+
+    window.saveProduct = async () => {
+      const name = document.getElementById('productName').value.trim();
+      const vendor = document.getElementById('vendorName').value.trim();
+      const editingId = productForm.dataset.editing;
+
+      if (editingId) {
+        await updateDoc(doc(db, "products", editingId), { name, vendor });
+        delete productForm.dataset.editing;
+      } else {
+        await addDoc(collection(db, "products"), { name, vendor });
+      }
+
+      document.getElementById('productName').value = "";
+      document.getElementById('vendorName').value = "";
+      loadProducts();
+    };
+
+    addProductBtn.onclick = () => {
+      productForm.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
 </body>
 </html>
