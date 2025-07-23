@@ -84,6 +84,9 @@
       form.style.display = 'none';
     }
 
+    window.showAddForm = showAddForm;
+    window.hideForm = hideForm;
+
     async function saveVendor() {
       const name = nameInput.value.trim();
       const phone = phoneInput.value.trim();
