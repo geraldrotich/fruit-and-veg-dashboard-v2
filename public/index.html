@@ -8,57 +8,64 @@
   <style>
     body {
       font-family: 'Lexend', sans-serif;
-      background: #f5f5f5;
-      padding: 40px;
-      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background: #f0f0f0;
     }
-    h1 {
-      color: #008800;
-      margin-bottom: 40px;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
     }
-    .button-container {
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .button-list {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 16px;
       max-width: 300px;
-      margin: auto;
     }
-    a button {
-      padding: 12px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
+    .button-list a {
+      text-decoration: none;
       background-color: #008800;
       color: white;
-      cursor: pointer;
-      font-family: 'Lexend', sans-serif;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      transition: background 0.2s;
     }
-    a button:hover {
-      opacity: 0.9;
+    .button-list a:hover {
+      background-color: #006600;
     }
     #logoutBtn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #cc0000;
+      background-color: #008800;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Lexend', sans-serif;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Fruit & Veg Dashboard</h1>
+  <header>
+    <h1>Fruit & Veg Dashboard</h1>
+    <button id="logoutBtn" style="display: none;">Logout</button>
+  </header>
 
-  <div class="button-container" id="buttonContainer">
-    <!-- Buttons will be injected here based on role -->
+  <div class="button-list" id="buttonList">
+    <!-- Buttons will be inserted here based on role -->
   </div>
-
-  <button id="logoutBtn" style="display:none;">Logout</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
+      getAuth, onAuthStateChanged, signOut
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -72,31 +79,35 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-
     const logoutBtn = document.getElementById("logoutBtn");
-    const buttonContainer = document.getElementById("buttonContainer");
+    const buttonList = document.getElementById("buttonList");
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        logoutBtn.style.display = "inline-block";
         const role = localStorage.getItem("role");
+        const isAdmin = role === "admin";
 
-        // Common buttons for both admin and user
-        const pages = [
-          { name: "Vendor Contacts", href: "vendor-contacts.html" },
-          { name: "Standing Orders", href: "standing-orders.html" },
-          { name: "Top 100 Items", href: "top-items.html" },
-          { name: "PDF Reader", href: "pdf-reader.html" },
-          { name: "Products", href: "products.html" }
+        const buttons = [
+          { name: "Vendor Contacts", link: "dashboard-vendors.html" },
+          { name: "Standing Orders", link: "standing-orders.html" },
+          { name: "Pricelist", link: "pricelist.html" },
         ];
 
-        pages.forEach((page) => {
-          const link = document.createElement("a");
-          link.href = page.href;
-          link.innerHTML = `<button>${page.name}</button>`;
-          buttonContainer.appendChild(link);
+        buttons.forEach(btn => {
+          const a = document.createElement("a");
+          a.href = btn.link;
+          a.textContent = btn.name;
+          buttonList.appendChild(a);
         });
 
-        logoutBtn.style.display = "inline-block";
+        // Optional Admin-only Dashboard
+        if (isAdmin) {
+          const adminBtn = document.createElement("a");
+          adminBtn.href = "admin.html";
+          adminBtn.textContent = "Admin Panel";
+          buttonList.appendChild(adminBtn);
+        }
       } else {
         window.location.href = "login.html";
       }
