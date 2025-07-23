@@ -59,7 +59,7 @@
   </header>
 
   <div class="button-list" id="buttonList">
-    <!-- Buttons will be inserted here based on role -->
+    <!-- Buttons will be inserted here -->
   </div>
 
   <script type="module">
@@ -86,28 +86,31 @@
       if (user) {
         logoutBtn.style.display = "inline-block";
         const role = localStorage.getItem("role");
-        const isAdmin = role === "admin";
 
-        const buttons = [
-          { name: "Vendor Contacts", link: "dashboard-vendors.html" },
+        // Universal links (admin and user)
+        const pages = [
+          { name: "Vendor Contacts", link: "vendor-contacts.html" },
           { name: "Standing Orders", link: "standing-orders.html" },
           { name: "Pricelist", link: "pricelist.html" },
+          { name: "Top 100 Items", link: "top-100.html" },
+          { name: "PDF Reader", link: "pdf-reader.html" },
         ];
 
-        buttons.forEach(btn => {
+        pages.forEach(page => {
           const a = document.createElement("a");
-          a.href = btn.link;
-          a.textContent = btn.name;
+          a.href = page.link;
+          a.textContent = page.name;
           buttonList.appendChild(a);
         });
 
-        // Optional Admin-only Dashboard
-        if (isAdmin) {
+        // Admin-only
+        if (role === "admin") {
           const adminBtn = document.createElement("a");
           adminBtn.href = "admin.html";
           adminBtn.textContent = "Admin Panel";
           buttonList.appendChild(adminBtn);
         }
+
       } else {
         window.location.href = "login.html";
       }
