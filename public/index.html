@@ -9,64 +9,59 @@
     body {
       font-family: 'Lexend', sans-serif;
       margin: 0;
-      padding: 20px;
-      background: #f0f0f0;
+      padding: 40px 20px;
+      background-color: #f7f7f7;
+      text-align: center;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    h1 {
       margin-bottom: 30px;
+      color: #008800;
     }
-    header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-    .button-list {
+    .button-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 15px;
       max-width: 300px;
+      margin: 0 auto;
     }
-    .button-list a {
-      text-decoration: none;
+    button {
+      font-family: 'Lexend', sans-serif;
+      font-size: 16px;
+      padding: 14px 20px;
       background-color: #008800;
       color: white;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
       transition: background 0.2s;
     }
-    .button-list a:hover {
+    button:hover {
       background-color: #006600;
     }
     #logoutBtn {
-      background-color: #008800;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 4px;
-      font-family: 'Lexend', sans-serif;
-      cursor: pointer;
+      margin-top: 40px;
+      background-color: #555;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Fruit & Veg Dashboard</h1>
-    <button id="logoutBtn" style="display: none;">Logout</button>
-  </header>
 
-  <div class="button-list" id="buttonList">
-    <!-- Buttons will be inserted here -->
+  <h1>Fruit & Veg Dashboard</h1>
+
+  <div class="button-container">
+    <a href="products.html"><button>Products</button></a>
+    <a href="vendor-contacts.html"><button>Vendor Contacts</button></a>
+    <a href="standing-orders.html"><button>Standing Orders</button></a>
+    <a href="pdf-reader.html"><button>PDF Reader</button></a>
+    <a href="top-100.html"><button>Top 100 Items</button></a>
+    <a href="pricelist.html"><button>Pricelist</button></a>
   </div>
 
+  <button id="logoutBtn" style="display:none;">Logout</button>
+
   <script type="module">
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
@@ -80,37 +75,10 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const logoutBtn = document.getElementById("logoutBtn");
-    const buttonList = document.getElementById("buttonList");
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         logoutBtn.style.display = "inline-block";
-        const role = localStorage.getItem("role");
-
-        // Universal links (admin and user)
-        const pages = [
-          { name: "Vendor Contacts", link: "vendor-contacts.html" },
-          { name: "Standing Orders", link: "standing-orders.html" },
-          { name: "Pricelist", link: "pricelist.html" },
-          { name: "Top 100 Items", link: "top-100.html" },
-          { name: "PDF Reader", link: "pdf-reader.html" },
-        ];
-
-        pages.forEach(page => {
-          const a = document.createElement("a");
-          a.href = page.link;
-          a.textContent = page.name;
-          buttonList.appendChild(a);
-        });
-
-        // Admin-only
-        if (role === "admin") {
-          const adminBtn = document.createElement("a");
-          adminBtn.href = "admin.html";
-          adminBtn.textContent = "Admin Panel";
-          buttonList.appendChild(adminBtn);
-        }
-
       } else {
         window.location.href = "login.html";
       }
@@ -122,5 +90,6 @@
       window.location.href = "login.html";
     };
   </script>
+
 </body>
 </html>
