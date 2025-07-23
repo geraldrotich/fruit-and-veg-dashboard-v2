@@ -28,15 +28,17 @@
     }
     button {
       font-family: 'Lexend', sans-serif;
-      background-color: #008800;
-      color: white;
       padding: 10px 16px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
     button:hover {
-      background-color: #006600;
+      opacity: 0.9;
+    }
+    .action-button {
+      background-color: #008800;
+      color: white;
     }
     .product-list {
       margin-top: 20px;
@@ -55,6 +57,8 @@
       margin-left: 8px;
       width: 1cm;
       height: 1cm;
+      background-color: transparent;
+      color: black;
     }
     input, label {
       display: block;
@@ -73,7 +77,7 @@
 <body>
   <div class="top-bar">
     <a href="index.html">Back to Home</a>
-    <button id="logoutBtn" style="display:none;">Logout</button>
+    <button id="logoutBtn" class="action-button" style="display:none;">Logout</button>
   </div>
 
   <h1>Products</h1>
@@ -82,13 +86,13 @@
     <label>Product Name
       <input type="text" id="productName" placeholder="Enter product name" />
     </label>
-    <label>Vendor Name
-      <input type="text" id="vendorName" placeholder="Enter vendor name" />
+    <label>Vendor Names (comma separated)
+      <input type="text" id="vendorName" placeholder="e.g. Vendor A, Vendor B" />
     </label>
-    <button onclick="saveProduct()">Save Product</button>
+    <button class="action-button" onclick="saveProduct()">Save Product</button>
   </div>
 
-  <button id="addProductBtn" style="display:none;">Add New Product</button>
+  <button id="addProductBtn" class="action-button" style="display:none;">Add New Product</button>
 
   <div class="product-list" id="productList"></div>
 
@@ -145,16 +149,17 @@
       const snapshot = await getDocs(collection(db, "products"));
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
+        const vendorList = (data.vendors || []).join(', ');
         const div = document.createElement("div");
         div.className = "product-item";
         div.innerHTML = `
           <div>
             <strong>${data.name}</strong><br>
-            Vendor: ${data.vendor || '—'}
+            Vendors: ${vendorList || '—'}
           </div>
           <div class="product-actions">
             ${userRole === 'admin' ? `
-              <button onclick="editProduct('${docSnap.id}', '${data.name}', '${data.vendor || ''}')">✏️</button>
+              <button onclick="editProduct('${docSnap.id}', '${data.name}', '${vendorList}')">✏️</button>
               <button onclick="deleteProduct('${docSnap.id}')">🗑️</button>
             ` : ''}
           </div>
@@ -163,9 +168,9 @@
       });
     }
 
-    window.editProduct = (id, name, vendor) => {
+    window.editProduct = (id, name, vendorsStr) => {
       document.getElementById('productName').value = name;
-      document.getElementById('vendorName').value = vendor;
+      document.getElementById('vendorName').value = vendorsStr;
       productForm.dataset.editing = id;
     }
 
@@ -176,14 +181,15 @@
 
     window.saveProduct = async () => {
       const name = document.getElementById('productName').value.trim();
-      const vendor = document.getElementById('vendorName').value.trim();
+      const vendorsInput = document.getElementById('vendorName').value.trim();
+      const vendors = vendorsInput.split(',').map(v => v.trim()).filter(v => v);
       const editingId = productForm.dataset.editing;
 
       if (editingId) {
-        await updateDoc(doc(db, "products", editingId), { name, vendor });
+        await updateDoc(doc(db, "products", editingId), { name, vendors });
         delete productForm.dataset.editing;
       } else {
-        await addDoc(collection(db, "products"), { name, vendor });
+        await addDoc(collection(db, "products"), { name, vendors });
       }
 
       document.getElementById('productName').value = "";
