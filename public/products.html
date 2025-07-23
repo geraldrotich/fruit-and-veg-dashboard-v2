@@ -59,6 +59,7 @@
       height: 1cm;
       background-color: transparent;
       color: black;
+      border: 1px solid #ccc;
     }
     input, label {
       display: block;
@@ -149,17 +150,17 @@
       const snapshot = await getDocs(collection(db, "products"));
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        const vendorList = (data.vendors || []).join(', ');
+        const vendorListItems = (data.vendors || []).map(v => `<li>${v}</li>`).join('');
         const div = document.createElement("div");
         div.className = "product-item";
         div.innerHTML = `
           <div>
             <strong>${data.name}</strong><br>
-            Vendors: ${vendorList || '—'}
+            <ul>${vendorListItems}</ul>
           </div>
           <div class="product-actions">
             ${userRole === 'admin' ? `
-              <button onclick="editProduct('${docSnap.id}', '${data.name}', '${vendorList}')">✏️</button>
+              <button onclick="editProduct('${docSnap.id}', '${data.name}', '${data.vendors.join(', ')}')">✏️</button>
               <button onclick="deleteProduct('${docSnap.id}')">🗑️</button>
             ` : ''}
           </div>
