@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Lexend', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+
+    header {
+      background: #008800;
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .logout-btn {
+      background: #fff;
+      color: #008800;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      background: #f0f0f0;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    .link-grid {
+      display: grid;
+      gap: 12px;
+      max-width: 300px;
+      margin: 0 auto;
+      margin-top: 2rem;
+    }
+
+    .link-grid a {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      background: #008800;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .link-grid a:hover {
+      background: #006600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Admin Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <p>Welcome, admin! What would you like to manage?</p>
+    <div class="link-grid">
+      <a href="dashboard-products.html">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="standing-orders.html">Standing Orders</a>
+      <a href="vendor-contacts.html">Vendor Contacts</a>
+      <a href="pdf-reader.html">PDF Reader</a>
+      <a href="top-100-items.html">Top 100 Items</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
+      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
+      projectId: "fruit-and-veg-dashboard-v2",
+      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      messagingSenderId: "742156994835",
+      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Check role and auth state
+    onAuthStateChanged(auth, (user) => {
+      const role = localStorage.getItem("role");
+      if (!user || role !== "admin") {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Logout function
+    window.logout = async () => {
+      await signOut(auth);
+      localStorage.removeItem("role");
+      window.location.href = "login.html";
+    };
+  </script>
+</body>
+</html>
