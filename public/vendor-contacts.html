@@ -51,6 +51,10 @@
       margin-bottom: 20px;
       padding: 10px 16px;
       font-size: 14px;
+      display: none; /* default to hidden until role is verified */
+    }
+    #form {
+      display: none;
     }
   </style>
 </head>
@@ -60,7 +64,7 @@
 
   <button id="addVendorBtn" onclick="showAddForm()">+ Add New Vendor</button>
 
-  <div id="form" style="display:none; margin-top: 20px;">
+  <div id="form">
     <div class="form-group">
       <label>Name:</label><br>
       <input type="text" id="vendorName" />
@@ -80,19 +84,60 @@
   <div id="vendorList" style="margin-top: 30px;"></div>
 
   <script type="module">
-    import { db } from './firebase.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import {
-      collection, addDoc, getDocs, updateDoc, deleteDoc, doc
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      updateDoc,
+      deleteDoc,
+      doc
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-    const form = document.getElementById('form');
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
+      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
+      projectId: "fruit-and-veg-dashboard-v2",
+      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      messagingSenderId: "742156994835",
+      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
     const nameInput = document.getElementById('vendorName');
     const phoneInput = document.getElementById('vendorPhone');
     const emailInput = document.getElementById('vendorEmail');
     const vendorList = document.getElementById('vendorList');
+    const addVendorBtn = document.getElementById('addVendorBtn');
+    const form = document.getElementById('form');
 
     const vendorsRef = collection(db, "vendors");
     let editingDocId = null;
+    let isAdmin = false;
+
+    onAuthStateChanged(auth, (user) => {
+      const role = localStorage.getItem("role");
+      if (!user || !role) {
+        window.location.href = "login.html";
+      }
+
+      if (role === "admin") {
+        isAdmin = true;
+        addVendorBtn.style.display = "inline-block";
+      }
+
+      loadVendors();
+    });
 
     function showAddForm() {
       nameInput.value = '';
@@ -134,26 +179,26 @@
         const vendor = docSnap.data();
         const div = document.createElement('div');
         div.className = 'vendor';
+        const actions = isAdmin
+          ? `
+            <button class="action-button" onclick="editVendor('${docSnap.id}', '${vendor.name}', '${vendor.phone}', '${vendor.email}')">✏️</button>
+            <button class="action-button" onclick="deleteVendor('${docSnap.id}')">🗑️</button>
+          `
+          : '';
         div.innerHTML = `
           <div>
             <strong>${vendor.name}</strong><br>
             <small>${vendor.phone}</small><br>
             <small>${vendor.email}</small>
           </div>
-          <div>
-            <button class="action-button" onclick="editVendor('${docSnap.id}', '${vendor.name}', '${vendor.phone}', '${vendor.email}')">✏️</button>
-            <button class="action-button" onclick="deleteVendor('${docSnap.id}')">🗑️</button>
-          </div>
+          <div>${actions}</div>
         `;
         vendorList.appendChild(div);
       });
     }
 
-    window.showAddForm = showAddForm;
-    window.hideForm = hideForm;
-    window.saveVendor = saveVendor;
-
     window.editVendor = (id, name, phone, email) => {
+      if (!isAdmin) return;
       nameInput.value = name;
       phoneInput.value = phone;
       emailInput.value = email;
@@ -162,13 +207,16 @@
     };
 
     window.deleteVendor = async (id) => {
+      if (!isAdmin) return;
       if (confirm("Are you sure you want to delete this vendor?")) {
         await deleteDoc(doc(db, "vendors", id));
         loadVendors();
       }
     };
 
-    loadVendors();
+    window.saveVendor = saveVendor;
+    window.showAddForm = showAddForm;
+    window.hideForm = hideForm;
   </script>
 </body>
 </html>
