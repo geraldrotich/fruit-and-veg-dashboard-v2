@@ -12,18 +12,15 @@
       padding: 0;
       background-color: #f7f7f7;
     }
-
     .container {
       max-width: 1000px;
       margin: auto;
       padding: 20px;
     }
-
     h1 {
       text-align: center;
       margin-bottom: 10px;
     }
-
     a.back-home {
       display: inline-block;
       margin-bottom: 20px;
@@ -33,13 +30,11 @@
       border-radius: 5px;
       text-decoration: none;
     }
-
     .tabs {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
     }
-
     .tab {
       margin: 0 10px;
       padding: 10px 20px;
@@ -47,23 +42,18 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     .tab.active {
       background-color: #008800;
       color: white;
     }
-
     .form-group {
       margin-bottom: 15px;
     }
-
     input, select {
       padding: 8px;
       width: 100%;
       margin-top: 5px;
-      font-family: 'Lexend', sans-serif;
     }
-
     button {
       padding: 8px 12px;
       background-color: #008800;
@@ -71,9 +61,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-family: 'Lexend', sans-serif;
     }
-
     .clickable {
       cursor: pointer;
       padding: 10px;
@@ -83,74 +71,28 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
-
     .clickable:hover {
       background-color: #f0f0f0;
       text-decoration: underline;
     }
-
     .hidden {
       display: none;
     }
-
     .list {
       margin-top: 20px;
     }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 12px;
-      border-radius: 12px;
-      color: white;
-      margin-left: 6px;
-    }
-
-    .organic {
-      background-color: #008000;
-    }
-
-    .conventional {
-      background-color: #FFA500;
-    }
-
-    .imported {
-      background-color: #0066cc;
-    }
-
-    .detail-card {
-      background: white;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-
-    .action-btns {
-      margin-top: 8px;
-    }
-
-    .action-btns button {
-      width: auto;
-      margin-right: 10px;
-      background-color: #444;
-    }
-
     .search-group {
       display: flex;
       gap: 10px;
       margin-top: 10px;
       align-items: center;
     }
-
     .search-group input {
       flex: 1;
     }
-
     .search-group button {
       flex: 0 0 auto;
     }
-
     #toggleProductFormBtn {
       margin-top: 10px;
       margin-bottom: 10px;
@@ -167,16 +109,13 @@
       <div class="tab" id="vendorTab" onclick="switchTab('vendors')">Vendors</div>
     </div>
 
-    <!-- Search -->
     <div class="search-group">
       <input type="text" id="searchInput" placeholder="Search products..." />
       <button onclick="handleSearch()">Search</button>
     </div>
 
-    <!-- Product Section -->
     <div id="productsSection">
       <button onclick="toggleProductForm()" id="toggleProductFormBtn">➕ Add New Product</button>
-
       <div id="addProductForm" class="hidden">
         <h2>Add Product</h2>
         <div class="form-group">
@@ -205,12 +144,10 @@
         </div>
         <button onclick="addProduct()">Add Product</button>
       </div>
-
       <h3>Products</h3>
       <div id="productList" class="list"></div>
     </div>
 
-    <!-- Vendor Section -->
     <div id="vendorsSection" class="hidden">
       <h2>Add Vendor</h2>
       <div class="form-group">
@@ -218,69 +155,93 @@
         <input type="text" id="vendorName" />
       </div>
       <button onclick="addVendor()">Add Vendor</button>
-
       <h3>Vendors</h3>
       <div id="vendorList" class="list"></div>
     </div>
-
-    <!-- Details Section -->
-    <div id="detailsSection" class="hidden" style="margin-top: 30px;">
-      <h3 id="detailsTitle"></h3>
-      <div id="detailsContent"></div>
-    </div>
   </div>
 
-  <script>
-    const isAdmin = true;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
+      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
+      projectId: "fruit-and-veg-dashboard-v2",
+      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      messagingSenderId: "742156994835",
+      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const products = [];
     const vendors = [];
     let currentOpenKey = null;
 
-    function toggleProductForm() {
-      const form = document.getElementById('addProductForm');
-      const btn = document.getElementById('toggleProductFormBtn');
-      const isHidden = form.classList.contains('hidden');
-      form.classList.toggle('hidden', !isHidden);
-      btn.textContent = isHidden ? '✖ Hide Product Form' : '➕ Add New Product';
+    function $(id) {
+      return document.getElementById(id);
     }
 
-    function switchTab(tab) {
-      document.getElementById('productTab').classList.toggle('active', tab === 'products');
-      document.getElementById('vendorTab').classList.toggle('active', tab === 'vendors');
-      document.getElementById('productsSection').classList.toggle('hidden', tab !== 'products');
-      document.getElementById('vendorsSection').classList.toggle('hidden', tab !== 'vendors');
-      document.getElementById('detailsSection').classList.add('hidden');
-      currentOpenKey = null;
-    }
+    window.switchTab = function(tab) {
+      $("productTab").classList.toggle("active", tab === "products");
+      $("vendorTab").classList.toggle("active", tab === "vendors");
+      $("productsSection").classList.toggle("hidden", tab !== "products");
+      $("vendorsSection").classList.toggle("hidden", tab !== "vendors");
+    };
 
-    function addVendor() {
-      const name = document.getElementById('vendorName').value.trim();
+    window.toggleProductForm = function() {
+      const form = $("addProductForm");
+      const btn = $("toggleProductFormBtn");
+      const isHidden = form.classList.contains("hidden");
+      form.classList.toggle("hidden", !isHidden);
+      btn.textContent = isHidden ? "✖ Hide Product Form" : "➕ Add New Product";
+    };
+
+    window.addVendor = async function() {
+      const name = $("vendorName").value.trim();
       if (!name) return alert("Vendor name is required");
-      vendors.push({ name });
-      updateVendorList();
-      updateVendorDropdown();
-      document.getElementById('vendorName').value = '';
-    }
 
-    function addProduct() {
-      const name = document.getElementById('productName').value.trim();
-      const unit = document.getElementById('productUnit').value.trim();
-      const price = parseFloat(document.getElementById('productPrice').value);
-      const type = document.getElementById('productType').value;
-      const vendor = document.getElementById('vendorSelect').value;
-      if (!name || !unit || isNaN(price) || !vendor) return alert("Fill all fields");
-      products.push({ name, unit, price, type, vendor });
-      updateProductList();
-      document.getElementById('productName').value = '';
-      document.getElementById('productUnit').value = '';
-      document.getElementById('productPrice').value = '';
-    }
+      try {
+        await addDoc(collection(db, "vendors"), { name });
+        vendors.push({ name });
+        updateVendorDropdown();
+        updateVendorList();
+        $("vendorName").value = "";
+      } catch (err) {
+        alert("Error saving vendor: " + err.message);
+      }
+    };
+
+    window.addProduct = async function() {
+      const name = $("productName").value.trim();
+      const unit = $("productUnit").value.trim();
+      const price = parseFloat($("productPrice").value);
+      const type = $("productType").value;
+      const vendor = $("vendorSelect").value;
+
+      if (!name || !unit || isNaN(price) || !vendor) return alert("Please fill all fields.");
+
+      try {
+        await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
+        products.push({ name, unit, price, type, vendor });
+        updateProductList();
+        $("productName").value = "";
+        $("productUnit").value = "";
+        $("productPrice").value = "";
+      } catch (err) {
+        alert("Error saving product: " + err.message);
+      }
+    };
 
     function updateVendorDropdown() {
-      const select = document.getElementById('vendorSelect');
-      select.innerHTML = '';
+      const select = $("vendorSelect");
+      select.innerHTML = "";
       vendors.forEach(v => {
-        const option = document.createElement('option');
+        const option = document.createElement("option");
         option.value = v.name;
         option.textContent = v.name;
         select.appendChild(option);
@@ -288,112 +249,26 @@
     }
 
     function updateProductList(filtered = null) {
-      const list = document.getElementById('productList');
-      list.innerHTML = '';
-      const grouped = groupBy(filtered || products, 'name');
+      const list = $("productList");
+      list.innerHTML = "";
+      const grouped = groupBy(filtered || products, "name");
       for (const name in grouped) {
-        const el = document.createElement('div');
-        el.className = 'clickable';
+        const el = document.createElement("div");
+        el.className = "clickable";
         el.textContent = name;
-        el.onclick = () => toggleDetails('product', name);
         list.appendChild(el);
       }
     }
 
     function updateVendorList(filtered = null) {
-      const list = document.getElementById('vendorList');
-      list.innerHTML = '';
+      const list = $("vendorList");
+      list.innerHTML = "";
       (filtered || vendors).forEach(v => {
-        const el = document.createElement('div');
-        el.className = 'clickable';
+        const el = document.createElement("div");
+        el.className = "clickable";
         el.textContent = v.name;
-        el.onclick = () => toggleDetails('vendor', v.name);
         list.appendChild(el);
       });
-    }
-
-    function toggleDetails(type, key) {
-      const section = document.getElementById('detailsSection');
-      if (currentOpenKey === `${type}:${key}`) {
-        section.classList.add('hidden');
-        currentOpenKey = null;
-        return;
-      }
-      currentOpenKey = `${type}:${key}`;
-      const title = document.getElementById('detailsTitle');
-      const content = document.getElementById('detailsContent');
-      content.innerHTML = '';
-      if (type === 'product') {
-        title.textContent = `Vendors for: ${key}`;
-        const matches = products.filter(p => p.name === key);
-        matches.forEach((p) => {
-          const div = document.createElement('div');
-          div.className = 'detail-card';
-          const badgeClass = p.type.toLowerCase();
-          div.innerHTML = `
-            <strong>Vendor:</strong> ${p.vendor}<br>
-            <strong>Unit:</strong> ${p.unit}<br>
-            <strong>Price:</strong> KES ${p.price.toFixed(2)}
-            <span class="badge ${badgeClass}">${p.type}</span>
-          `;
-          if (isAdmin) {
-            const btns = document.createElement('div');
-            btns.className = 'action-btns';
-            btns.innerHTML = `
-              <button onclick="editProduct(${products.indexOf(p)})">Edit</button>
-              <button onclick="deleteProduct(${products.indexOf(p)})">Delete</button>
-            `;
-            div.appendChild(btns);
-          }
-          content.appendChild(div);
-        });
-      } else {
-        title.textContent = `Products from: ${key}`;
-        const matches = products.filter(p => p.vendor === key);
-        matches.forEach((p) => {
-          const div = document.createElement('div');
-          div.className = 'detail-card';
-          const badgeClass = p.type.toLowerCase();
-          div.innerHTML = `
-            <strong>Product:</strong> ${p.name}<br>
-            <strong>Unit:</strong> ${p.unit}<br>
-            <strong>Price:</strong> KES ${p.price.toFixed(2)}
-            <span class="badge ${badgeClass}">${p.type}</span>
-          `;
-          if (isAdmin) {
-            const btns = document.createElement('div');
-            btns.className = 'action-btns';
-            btns.innerHTML = `
-              <button onclick="editProduct(${products.indexOf(p)})">Edit</button>
-              <button onclick="deleteProduct(${products.indexOf(p)})">Delete</button>
-            `;
-            div.appendChild(btns);
-          }
-          content.appendChild(div);
-        });
-      }
-      section.classList.remove('hidden');
-    }
-
-    function editProduct(index) {
-      const item = products[index];
-      const newPrice = prompt("Enter new price:", item.price);
-      const newUnit = prompt("Enter new unit:", item.unit);
-      const newType = prompt("Enter type (organic, conventional, imported):", item.type);
-      if (newPrice && newUnit && newType) {
-        products[index].price = parseFloat(newPrice);
-        products[index].unit = newUnit;
-        products[index].type = newType.toLowerCase();
-        toggleDetails('product', products[index].name);
-      }
-    }
-
-    function deleteProduct(index) {
-      const confirmDelete = confirm("Are you sure?");
-      if (!confirmDelete) return;
-      products.splice(index, 1);
-      updateProductList();
-      document.getElementById('detailsSection').classList.add('hidden');
     }
 
     function groupBy(arr, key) {
@@ -403,16 +278,23 @@
       }, {});
     }
 
-    function handleSearch() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      const isProductTab = !document.getElementById('productsSection').classList.contains('hidden');
-      if (isProductTab) {
-        const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-        updateProductList(filtered);
-      } else {
-        alert("Search only works in the Products tab for now.");
-      }
+    async function loadVendors() {
+      const snapshot = await getDocs(collection(db, "vendors"));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.name) vendors.push({ name: data.name });
+      });
+      updateVendorDropdown();
+      updateVendorList();
     }
+
+    window.handleSearch = function() {
+      const term = $("searchInput").value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+      updateProductList(filtered);
+    };
+
+    loadVendors();
   </script>
 </body>
 </html>
