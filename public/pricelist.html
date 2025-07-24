@@ -112,6 +112,26 @@
       border-radius: 6px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
+
+    .action-btns {
+      margin-top: 8px;
+    }
+
+    .action-btns button {
+      width: auto;
+      margin-right: 10px;
+      background-color: #444;
+    }
+
+    .search-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .search-group input {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -121,6 +141,12 @@
     <div class="tabs">
       <div class="tab active" id="productTab" onclick="switchTab('products')">Products</div>
       <div class="tab" id="vendorTab" onclick="switchTab('vendors')">Vendors</div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-group">
+      <input type="text" id="searchInput" placeholder="Search by name..." />
+      <button onclick="handleSearch()">Search</button>
     </div>
 
     <!-- Product Section -->
@@ -177,8 +203,10 @@
   </div>
 
   <script>
+    const isAdmin = true; // 🔒 Toggle this later with real auth
     const products = [];
     const vendors = [];
+    let currentOpenKey = null;
 
     function switchTab(tab) {
       document.getElementById('productTab').classList.toggle('active', tab === 'products');
@@ -186,12 +214,12 @@
       document.getElementById('productsSection').classList.toggle('hidden', tab !== 'products');
       document.getElementById('vendorsSection').classList.toggle('hidden', tab !== 'vendors');
       document.getElementById('detailsSection').classList.add('hidden');
+      currentOpenKey = null;
     }
 
     function addVendor() {
       const name = document.getElementById('vendorName').value.trim();
       if (!name) return alert("Vendor name is required");
-
       vendors.push({ name });
       updateVendorList();
       updateVendorDropdown();
@@ -204,11 +232,7 @@
       const price = parseFloat(document.getElementById('productPrice').value);
       const type = document.getElementById('productType').value;
       const vendor = document.getElementById('vendorSelect').value;
-
-      if (!name || !unit || isNaN(price) || !vendor) {
-        return alert("Please fill in all fields.");
-      }
-
+      if (!name || !unit || isNaN(price) || !vendor) return alert("Fill all fields");
       products.push({ name, unit, price, type, vendor });
       updateProductList();
       document.getElementById('productName').value = '';
@@ -227,82 +251,114 @@
       });
     }
 
-    function updateProductList() {
+    function updateProductList(filtered = null) {
       const list = document.getElementById('productList');
       list.innerHTML = '';
-      const grouped = groupBy(products, 'name');
-
+      const grouped = groupBy(filtered || products, 'name');
       for (const name in grouped) {
         const el = document.createElement('div');
         el.className = 'clickable';
         el.textContent = name;
-        el.onclick = () => showVendorsForProduct(name);
+        el.onclick = () => toggleDetails('product', name);
         list.appendChild(el);
       }
     }
 
-    function updateVendorList() {
+    function updateVendorList(filtered = null) {
       const list = document.getElementById('vendorList');
       list.innerHTML = '';
-      vendors.forEach(v => {
+      (filtered || vendors).forEach(v => {
         const el = document.createElement('div');
         el.className = 'clickable';
         el.textContent = v.name;
-        el.onclick = () => showProductsForVendor(v.name);
+        el.onclick = () => toggleDetails('vendor', v.name);
         list.appendChild(el);
       });
     }
 
-    function showVendorsForProduct(productName) {
-      const matches = products.filter(p => p.name === productName);
-      const detailsTitle = document.getElementById('detailsTitle');
-      const detailsContent = document.getElementById('detailsContent');
-      const detailsSection = document.getElementById('detailsSection');
-
-      detailsTitle.textContent = `Vendors for: ${productName}`;
-      detailsContent.innerHTML = '';
-
-      matches.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'detail-card';
-        const badgeClass = p.type.toLowerCase();
-
-        div.innerHTML = `
-          <strong>Vendor:</strong> ${p.vendor}<br>
-          <strong>Unit:</strong> ${p.unit}<br>
-          <strong>Price:</strong> KES ${p.price.toFixed(2)}
-          <span class="badge ${badgeClass}">${p.type}</span>
-        `;
-        detailsContent.appendChild(div);
-      });
-
-      detailsSection.classList.remove('hidden');
+    function toggleDetails(type, key) {
+      const section = document.getElementById('detailsSection');
+      if (currentOpenKey === `${type}:${key}`) {
+        section.classList.add('hidden');
+        currentOpenKey = null;
+        return;
+      }
+      currentOpenKey = `${type}:${key}`;
+      const title = document.getElementById('detailsTitle');
+      const content = document.getElementById('detailsContent');
+      content.innerHTML = '';
+      if (type === 'product') {
+        title.textContent = `Vendors for: ${key}`;
+        const matches = products.filter(p => p.name === key);
+        matches.forEach((p, index) => {
+          const div = document.createElement('div');
+          div.className = 'detail-card';
+          const badgeClass = p.type.toLowerCase();
+          div.innerHTML = `
+            <strong>Vendor:</strong> ${p.vendor}<br>
+            <strong>Unit:</strong> ${p.unit}<br>
+            <strong>Price:</strong> KES ${p.price.toFixed(2)}
+            <span class="badge ${badgeClass}">${p.type}</span>
+          `;
+          if (isAdmin) {
+            const btns = document.createElement('div');
+            btns.className = 'action-btns';
+            btns.innerHTML = `
+              <button onclick="editProduct(${products.indexOf(p)})">Edit</button>
+              <button onclick="deleteProduct(${products.indexOf(p)})">Delete</button>
+            `;
+            div.appendChild(btns);
+          }
+          content.appendChild(div);
+        });
+      } else {
+        title.textContent = `Products from: ${key}`;
+        const matches = products.filter(p => p.vendor === key);
+        matches.forEach((p, index) => {
+          const div = document.createElement('div');
+          div.className = 'detail-card';
+          const badgeClass = p.type.toLowerCase();
+          div.innerHTML = `
+            <strong>Product:</strong> ${p.name}<br>
+            <strong>Unit:</strong> ${p.unit}<br>
+            <strong>Price:</strong> KES ${p.price.toFixed(2)}
+            <span class="badge ${badgeClass}">${p.type}</span>
+          `;
+          if (isAdmin) {
+            const btns = document.createElement('div');
+            btns.className = 'action-btns';
+            btns.innerHTML = `
+              <button onclick="editProduct(${products.indexOf(p)})">Edit</button>
+              <button onclick="deleteProduct(${products.indexOf(p)})">Delete</button>
+            `;
+            div.appendChild(btns);
+          }
+          content.appendChild(div);
+        });
+      }
+      section.classList.remove('hidden');
     }
 
-    function showProductsForVendor(vendorName) {
-      const matches = products.filter(p => p.vendor === vendorName);
-      const detailsTitle = document.getElementById('detailsTitle');
-      const detailsContent = document.getElementById('detailsContent');
-      const detailsSection = document.getElementById('detailsSection');
+    function editProduct(index) {
+      const item = products[index];
+      const newPrice = prompt("Enter new price:", item.price);
+      const newUnit = prompt("Enter new unit:", item.unit);
+      const newType = prompt("Enter type (organic, conventional, imported):", item.type);
+      if (newPrice && newUnit && newType) {
+        products[index].price = parseFloat(newPrice);
+        products[index].unit = newUnit;
+        products[index].type = newType.toLowerCase();
+        toggleDetails('product', products[index].name);
+      }
+    }
 
-      detailsTitle.textContent = `Products from: ${vendorName}`;
-      detailsContent.innerHTML = '';
-
-      matches.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'detail-card';
-        const badgeClass = p.type.toLowerCase();
-
-        div.innerHTML = `
-          <strong>Product:</strong> ${p.name}<br>
-          <strong>Unit:</strong> ${p.unit}<br>
-          <strong>Price:</strong> KES ${p.price.toFixed(2)}
-          <span class="badge ${badgeClass}">${p.type}</span>
-        `;
-        detailsContent.appendChild(div);
-      });
-
-      detailsSection.classList.remove('hidden');
+    function deleteProduct(index) {
+      const confirmDelete = confirm("Are you sure?");
+      if (!confirmDelete) return;
+      const name = products[index].name;
+      products.splice(index, 1);
+      updateProductList();
+      document.getElementById('detailsSection').classList.add('hidden');
     }
 
     function groupBy(arr, key) {
@@ -310,6 +366,15 @@
         (acc[obj[key]] = acc[obj[key]] || []).push(obj);
         return acc;
       }, {});
+    }
+
+    function handleSearch() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      if (document.getElementById('productsSection').classList.contains('hidden')) {
+        updateVendorList(vendors.filter(v => v.name.toLowerCase().includes(term)));
+      } else {
+        updateProductList(products.filter(p => p.name.toLowerCase().includes(term)));
+      }
     }
   </script>
 </body>
