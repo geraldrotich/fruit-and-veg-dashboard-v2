@@ -83,6 +83,35 @@
     .list {
       margin-top: 20px;
     }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 12px;
+      color: white;
+      margin-left: 6px;
+    }
+
+    .organic {
+      background-color: #008000;
+    }
+
+    .conventional {
+      background-color: #FFA500;
+    }
+
+    .imported {
+      background-color: #0066cc;
+    }
+
+    .detail-card {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -94,7 +123,7 @@
       <div class="tab" id="vendorTab" onclick="switchTab('vendors')">Vendors</div>
     </div>
 
-    <!-- Add Product Form -->
+    <!-- Product Section -->
     <div id="productsSection">
       <h2>Add Product</h2>
       <div class="form-group">
@@ -127,7 +156,7 @@
       <div id="productList" class="list"></div>
     </div>
 
-    <!-- Add Vendor Form -->
+    <!-- Vendor Section -->
     <div id="vendorsSection" class="hidden">
       <h2>Add Vendor</h2>
       <div class="form-group">
@@ -139,6 +168,12 @@
       <h3>Vendors</h3>
       <div id="vendorList" class="list"></div>
     </div>
+
+    <!-- Dynamic Details Section -->
+    <div id="detailsSection" class="hidden" style="margin-top: 30px;">
+      <h3 id="detailsTitle"></h3>
+      <div id="detailsContent"></div>
+    </div>
   </div>
 
   <script>
@@ -146,26 +181,15 @@
     const vendors = [];
 
     function switchTab(tab) {
-      const productTab = document.getElementById('productTab');
-      const vendorTab = document.getElementById('vendorTab');
-      const productsSection = document.getElementById('productsSection');
-      const vendorsSection = document.getElementById('vendorsSection');
-
-      if (tab === 'products') {
-        productTab.classList.add('active');
-        vendorTab.classList.remove('active');
-        productsSection.classList.remove('hidden');
-        vendorsSection.classList.add('hidden');
-      } else {
-        vendorTab.classList.add('active');
-        productTab.classList.remove('active');
-        vendorsSection.classList.remove('hidden');
-        productsSection.classList.add('hidden');
-      }
+      document.getElementById('productTab').classList.toggle('active', tab === 'products');
+      document.getElementById('vendorTab').classList.toggle('active', tab === 'vendors');
+      document.getElementById('productsSection').classList.toggle('hidden', tab !== 'products');
+      document.getElementById('vendorsSection').classList.toggle('hidden', tab !== 'vendors');
+      document.getElementById('detailsSection').classList.add('hidden');
     }
 
     function addVendor() {
-      const name = document.getElementById('vendorName').value;
+      const name = document.getElementById('vendorName').value.trim();
       if (!name) return alert("Vendor name is required");
 
       vendors.push({ name });
@@ -175,8 +199,8 @@
     }
 
     function addProduct() {
-      const name = document.getElementById('productName').value;
-      const unit = document.getElementById('productUnit').value;
+      const name = document.getElementById('productName').value.trim();
+      const unit = document.getElementById('productUnit').value.trim();
       const price = parseFloat(document.getElementById('productPrice').value);
       const type = document.getElementById('productType').value;
       const vendor = document.getElementById('vendorSelect').value;
@@ -231,14 +255,54 @@
 
     function showVendorsForProduct(productName) {
       const matches = products.filter(p => p.name === productName);
-      const msg = matches.map(p => `Vendor: ${p.vendor}, Unit: ${p.unit}, Price: ${p.price}, Type: ${p.type}`).join('\n');
-      alert(`Vendors for ${productName}:\n\n${msg}`);
+      const detailsTitle = document.getElementById('detailsTitle');
+      const detailsContent = document.getElementById('detailsContent');
+      const detailsSection = document.getElementById('detailsSection');
+
+      detailsTitle.textContent = `Vendors for: ${productName}`;
+      detailsContent.innerHTML = '';
+
+      matches.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'detail-card';
+        const badgeClass = p.type.toLowerCase();
+
+        div.innerHTML = `
+          <strong>Vendor:</strong> ${p.vendor}<br>
+          <strong>Unit:</strong> ${p.unit}<br>
+          <strong>Price:</strong> KES ${p.price.toFixed(2)}
+          <span class="badge ${badgeClass}">${p.type}</span>
+        `;
+        detailsContent.appendChild(div);
+      });
+
+      detailsSection.classList.remove('hidden');
     }
 
     function showProductsForVendor(vendorName) {
       const matches = products.filter(p => p.vendor === vendorName);
-      const msg = matches.map(p => `Product: ${p.name}, Unit: ${p.unit}, Price: ${p.price}, Type: ${p.type}`).join('\n');
-      alert(`Products from ${vendorName}:\n\n${msg}`);
+      const detailsTitle = document.getElementById('detailsTitle');
+      const detailsContent = document.getElementById('detailsContent');
+      const detailsSection = document.getElementById('detailsSection');
+
+      detailsTitle.textContent = `Products from: ${vendorName}`;
+      detailsContent.innerHTML = '';
+
+      matches.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'detail-card';
+        const badgeClass = p.type.toLowerCase();
+
+        div.innerHTML = `
+          <strong>Product:</strong> ${p.name}<br>
+          <strong>Unit:</strong> ${p.unit}<br>
+          <strong>Price:</strong> KES ${p.price.toFixed(2)}
+          <span class="badge ${badgeClass}">${p.type}</span>
+        `;
+        detailsContent.appendChild(div);
+      });
+
+      detailsSection.classList.remove('hidden');
     }
 
     function groupBy(arr, key) {
