@@ -12,18 +12,15 @@
       padding: 0;
       background-color: #f7f7f7;
     }
-
     .container {
       max-width: 1000px;
       margin: auto;
       padding: 20px;
     }
-
     h1 {
       text-align: center;
       margin-bottom: 10px;
     }
-
     a.back-home {
       display: inline-block;
       margin-bottom: 20px;
@@ -33,13 +30,22 @@
       border-radius: 5px;
       text-decoration: none;
     }
-
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 12px;
+      color: white;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+    .organic { background-color: #2ecc71; }
+    .conventional { background-color: #3498db; }
+    .imported { background-color: #e67e22; }
     .tabs {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
     }
-
     .tab {
       margin: 0 10px;
       padding: 10px 20px;
@@ -47,23 +53,18 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     .tab.active {
       background-color: #008800;
       color: white;
     }
-
     .form-group {
       margin-bottom: 15px;
     }
-
     input, select {
       padding: 8px;
       width: 100%;
       margin-top: 5px;
-      font-family: 'Lexend', sans-serif;
     }
-
     button {
       padding: 8px 12px;
       background-color: #008800;
@@ -71,9 +72,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-family: 'Lexend', sans-serif;
     }
-
     .clickable {
       cursor: pointer;
       padding: 10px;
@@ -83,81 +82,18 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
-
     .clickable:hover {
       background-color: #f0f0f0;
-      text-decoration: underline;
     }
-
     .hidden {
       display: none;
     }
-
-    .list {
-      margin-top: 20px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      font-size: 12px;
-      border-radius: 12px;
-      color: white;
-      margin-top: 4px;
-    }
-
-    .organic {
-      background-color: #008000;
-    }
-
-    .conventional {
-      background-color: #FFA500;
-    }
-
-    .imported {
-      background-color: #0066cc;
-    }
-
     .details-card {
       background-color: #fff;
       padding: 10px;
       margin-top: 5px;
       border-radius: 5px;
       box-shadow: 0 0 3px rgba(0,0,0,0.2);
-    }
-
-    .detail-item {
-      margin-bottom: 10px;
-    }
-
-    .action-buttons {
-      margin-top: 6px;
-    }
-
-    .action-buttons button {
-      background-color: #444;
-      margin-right: 6px;
-      font-size: 12px;
-    }
-
-    .search-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
-    }
-
-    .search-group input {
-      flex: 1;
-    }
-
-    .search-group button {
-      flex: 0 0 auto;
-    }
-
-    #toggleProductFormBtn {
-      margin-top: 10px;
-      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -171,9 +107,9 @@
       <div class="tab" id="vendorTab" onclick="switchTab('vendors')">Vendors</div>
     </div>
 
-    <div class="search-group">
-      <input type="text" id="searchInput" placeholder="Search products..." />
-      <button onclick="handleSearch()">Search</button>
+    <div class="search-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <input type="text" id="searchInput" placeholder="Search products..." style="flex: 1;" />
+      <button onclick="handleSearch()" style="flex: 0 0 auto;">Search</button>
     </div>
 
     <div id="productsSection">
@@ -185,7 +121,7 @@
           <input type="text" id="productName" />
         </div>
         <div class="form-group">
-          <label>Unit (e.g. kg, g, bunch):</label>
+          <label>Unit:</label>
           <input type="text" id="productUnit" />
         </div>
         <div class="form-group">
@@ -208,7 +144,7 @@
       </div>
 
       <h3>Products</h3>
-      <div id="productList" class="list"></div>
+      <div id="productList"></div>
     </div>
 
     <div id="vendorsSection" class="hidden">
@@ -219,28 +155,21 @@
       </div>
       <button onclick="addVendor()">Add Vendor</button>
       <h3>Vendors</h3>
-      <div id="vendorList" class="list"></div>
-    </div>
-
-    <div id="detailsSection" class="hidden" style="margin-top: 30px;">
-      <h3 id="detailsTitle"></h3>
-      <div id="detailsContent"></div>
+      <div id="vendorList"></div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc
+      getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-
-    const isAdmin = true;
 
     const firebaseConfig = {
       apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
       authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
       projectId: "fruit-and-veg-dashboard-v2",
-      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
+      storageBucket: "fruit-and-veg-dashboard-v2.appspot.com",
       messagingSenderId: "742156994835",
       appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
     };
@@ -255,23 +184,22 @@
       return document.getElementById(id);
     }
 
-    window.switchTab = function(tab) {
+    function switchTab(tab) {
       $("productTab").classList.toggle("active", tab === "products");
       $("vendorTab").classList.toggle("active", tab === "vendors");
       $("productsSection").classList.toggle("hidden", tab !== "products");
       $("vendorsSection").classList.toggle("hidden", tab !== "vendors");
-      $("detailsSection").classList.add("hidden");
-    };
+    }
 
-    window.toggleProductForm = function() {
+    function toggleProductForm() {
       const form = $("addProductForm");
       const btn = $("toggleProductFormBtn");
       const isHidden = form.classList.contains("hidden");
       form.classList.toggle("hidden", !isHidden);
       btn.textContent = isHidden ? "✖ Hide Product Form" : "➕ Add New Product";
-    };
+    }
 
-    window.addVendor = async function() {
+    async function addVendor() {
       const name = $("vendorName").value.trim();
       if (!name) return alert("Vendor name is required");
       await addDoc(collection(db, "vendors"), { name });
@@ -279,9 +207,9 @@
       updateVendorDropdown();
       updateVendorList();
       $("vendorName").value = "";
-    };
+    }
 
-    window.addProduct = async function() {
+    async function addProduct() {
       const name = $("productName").value.trim();
       const unit = $("productUnit").value.trim();
       const price = parseFloat($("productPrice").value);
@@ -289,12 +217,21 @@
       const vendor = $("vendorSelect").value;
       if (!name || !unit || isNaN(price) || !vendor) return alert("Please fill all fields.");
       await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
-      products.push({ name, unit, price, type, vendor });
-      updateProductList();
+      loadProducts();
       $("productName").value = "";
       $("productUnit").value = "";
       $("productPrice").value = "";
-    };
+    }
+
+    async function deleteProduct(id) {
+      await deleteDoc(doc(db, "products", id));
+      loadProducts();
+    }
+
+    async function updateProduct(id, field, value) {
+      const ref = doc(db, "products", id);
+      await updateDoc(ref, { [field]: value });
+    }
 
     function updateVendorDropdown() {
       const select = $("vendorSelect");
@@ -307,73 +244,6 @@
       });
     }
 
-    function updateProductList(filtered = null) {
-      const list = $("productList");
-      list.innerHTML = "";
-
-      const grouped = groupBy((filtered || products).sort((a, b) => a.name.localeCompare(b.name)), "name");
-
-      for (const name in grouped) {
-        const el = document.createElement("div");
-        el.className = "clickable";
-        el.innerHTML = `${name} <span class="badge ${grouped[name][0].type}">${grouped[name][0].type}</span>`;
-        el.onclick = () => showProductDetails(name);
-        list.appendChild(el);
-      }
-    }
-
-    function showProductDetails(productName) {
-      const matches = products.filter(p => p.name === productName);
-      $("detailsTitle").textContent = `Vendors for: ${productName}`;
-      $("detailsContent").innerHTML = matches.map((p, i) => `
-        <div class="details-card">
-          <div class="detail-item"><strong>Vendor:</strong> ${p.vendor}</div>
-          <div class="detail-item"><strong>Unit:</strong> ${p.unit}</div>
-          <div class="detail-item"><strong>Price:</strong> KES ${p.price.toFixed(2)}</div>
-          <span class="badge ${p.type}">${p.type}</span>
-          ${isAdmin ? `
-            <div class="action-buttons">
-              <button>Edit</button>
-              <button>Delete</button>
-            </div>
-          ` : ''}
-        </div>
-      `).join("");
-      $("detailsSection").classList.remove("hidden");
-    }
-
-    function updateVendorList() {
-      const list = $("vendorList");
-      list.innerHTML = "";
-      vendors.sort((a, b) => a.name.localeCompare(b.name)).forEach(v => {
-        const el = document.createElement("div");
-        el.className = "clickable";
-        el.textContent = v.name;
-        el.onclick = () => showVendorProducts(v.name);
-        list.appendChild(el);
-      });
-    }
-
-    function showVendorProducts(vendorName) {
-      const matches = products.filter(p => p.vendor === vendorName);
-      $("detailsTitle").textContent = `Products from: ${vendorName}`;
-      $("detailsContent").innerHTML = matches.map((p, i) => `
-        <div class="details-card">
-          <div class="detail-item"><strong>Product:</strong> ${p.name}</div>
-          <div class="detail-item"><strong>Unit:</strong> ${p.unit}</div>
-          <div class="detail-item"><strong>Price:</strong> KES ${p.price.toFixed(2)}</div>
-          <span class="badge ${p.type}">${p.type}</span>
-          ${isAdmin ? `
-            <div class="action-buttons">
-              <button>Edit</button>
-              <button>Delete</button>
-            </div>
-          ` : ''}
-        </div>
-      `).join("");
-      $("detailsSection").classList.remove("hidden");
-    }
-
     function groupBy(arr, key) {
       return arr.reduce((acc, obj) => {
         (acc[obj[key]] = acc[obj[key]] || []).push(obj);
@@ -381,30 +251,86 @@
       }, {});
     }
 
-    window.handleSearch = function() {
-      const term = $("searchInput").value.toLowerCase();
-      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-      updateProductList(filtered);
-    };
+    function createTag(type) {
+      return `<span class="badge ${type}">${type}</span>`;
+    }
+
+    function updateProductList(filtered = null) {
+      const grouped = groupBy(filtered || products, "name");
+      const list = $("productList");
+      list.innerHTML = "";
+
+      const sorted = Object.keys(grouped).sort();
+      for (const name of sorted) {
+        const entry = grouped[name];
+        const tag = createTag(entry[0].type);
+        const el = document.createElement("div");
+        el.className = "clickable";
+        el.innerHTML = `${name} ${tag}`;
+        el.onclick = () => {
+          const card = $("card-" + name);
+          card.classList.toggle("hidden");
+        };
+
+        const card = document.createElement("div");
+        card.className = "details-card hidden";
+        card.id = "card-" + name;
+        card.innerHTML = entry.map(p => `
+          <div>
+            <strong>Vendor:</strong> ${p.vendor}<br>
+            <strong>Unit:</strong> ${p.unit}<br>
+            <strong>Price:</strong> ${p.price}<br>
+            <button onclick="deleteProduct('${p.id}')">Delete</button>
+          </div><hr>
+        `).join("");
+
+        list.appendChild(el);
+        list.appendChild(card);
+      }
+    }
+
+    function updateVendorList() {
+      const list = $("vendorList");
+      list.innerHTML = "";
+      vendors.forEach(v => {
+        const el = document.createElement("div");
+        el.className = "clickable";
+        el.textContent = v.name;
+        el.onclick = () => {
+          const vendorProducts = products.filter(p => p.vendor === v.name);
+          alert(`${v.name} offers:\n` + vendorProducts.map(p => `${p.name} (${p.unit}) - ${p.price}`).join("\n"));
+        };
+        list.appendChild(el);
+      });
+    }
 
     async function loadVendors() {
       const snapshot = await getDocs(collection(db, "vendors"));
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.name) vendors.push({ name: data.name });
-      });
+      vendors.length = 0;
+      snapshot.forEach(doc => vendors.push({ ...doc.data(), id: doc.id }));
       updateVendorDropdown();
       updateVendorList();
     }
 
     async function loadProducts() {
       const snapshot = await getDocs(collection(db, "products"));
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.name) products.push(data);
-      });
+      products.length = 0;
+      snapshot.forEach(doc => products.push({ ...doc.data(), id: doc.id }));
       updateProductList();
     }
+
+    function handleSearch() {
+      const term = $("searchInput").value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+      updateProductList(filtered);
+    }
+
+    window.switchTab = switchTab;
+    window.toggleProductForm = toggleProductForm;
+    window.addVendor = addVendor;
+    window.addProduct = addProduct;
+    window.deleteProduct = deleteProduct;
+    window.handleSearch = handleSearch;
 
     loadVendors();
     loadProducts();
