@@ -46,7 +46,7 @@
       margin-bottom: 15px;
     }
 
-    input, select, button {
+    input, select {
       padding: 8px;
       width: 100%;
       margin-top: 5px;
@@ -54,11 +54,13 @@
     }
 
     button {
+      padding: 8px 12px;
       background-color: #008800;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      font-family: 'Lexend', sans-serif;
     }
 
     .clickable {
@@ -127,10 +129,15 @@
       display: flex;
       gap: 10px;
       margin-top: 10px;
+      align-items: center;
     }
 
     .search-group input {
       flex: 1;
+    }
+
+    .search-group button {
+      flex: 0 0 auto;
     }
   </style>
 </head>
@@ -145,7 +152,7 @@
 
     <!-- Search -->
     <div class="search-group">
-      <input type="text" id="searchInput" placeholder="Search by name..." />
+      <input type="text" id="searchInput" placeholder="Search products..." />
       <button onclick="handleSearch()">Search</button>
     </div>
 
@@ -195,7 +202,7 @@
       <div id="vendorList" class="list"></div>
     </div>
 
-    <!-- Dynamic Details Section -->
+    <!-- Details Section -->
     <div id="detailsSection" class="hidden" style="margin-top: 30px;">
       <h3 id="detailsTitle"></h3>
       <div id="detailsContent"></div>
@@ -203,7 +210,7 @@
   </div>
 
   <script>
-    const isAdmin = true; // 🔒 Toggle this later with real auth
+    const isAdmin = true;
     const products = [];
     const vendors = [];
     let currentOpenKey = null;
@@ -355,7 +362,6 @@
     function deleteProduct(index) {
       const confirmDelete = confirm("Are you sure?");
       if (!confirmDelete) return;
-      const name = products[index].name;
       products.splice(index, 1);
       updateProductList();
       document.getElementById('detailsSection').classList.add('hidden');
@@ -370,10 +376,13 @@
 
     function handleSearch() {
       const term = document.getElementById('searchInput').value.toLowerCase();
-      if (document.getElementById('productsSection').classList.contains('hidden')) {
-        updateVendorList(vendors.filter(v => v.name.toLowerCase().includes(term)));
+      const isProductTab = !document.getElementById('productsSection').classList.contains('hidden');
+
+      if (isProductTab) {
+        const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+        updateProductList(filtered);
       } else {
-        updateProductList(products.filter(p => p.name.toLowerCase().includes(term)));
+        alert("Search only works in the Products tab for now.");
       }
     }
   </script>
