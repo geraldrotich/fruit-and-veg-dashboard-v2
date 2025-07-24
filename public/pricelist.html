@@ -97,6 +97,13 @@
       margin-top: 10px;
       margin-bottom: 10px;
     }
+    .details-card {
+      background-color: #fff;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -180,6 +187,7 @@
 
     const products = [];
     const vendors = [];
+    const openDetails = {};
 
     function $(id) {
       return document.getElementById(id);
@@ -243,9 +251,24 @@
       for (const name in grouped) {
         const el = document.createElement("div");
         el.className = "clickable";
-        el.textContent = name;
+        el.innerHTML = `${name} <span style="font-size: 12px; color: gray;">(${grouped[name][0].type})</span>`;
+        el.onclick = () => toggleDetails(name, grouped[name]);
         list.appendChild(el);
+
+        const card = document.createElement("div");
+        card.className = "details-card hidden";
+        card.id = `details-${name}`;
+        list.appendChild(card);
       }
+    }
+
+    function toggleDetails(name, items) {
+      const card = $(`details-${name}`);
+      if (!card) return;
+      const isVisible = !card.classList.contains("hidden");
+      card.classList.toggle("hidden", isVisible);
+      if (isVisible) return;
+      card.innerHTML = items.map(p => `<div><strong>Vendor:</strong> ${p.vendor}, <strong>Unit:</strong> ${p.unit}, <strong>Price:</strong> ${p.price}</div>`).join("<hr>");
     }
 
     function updateVendorList(filtered = null) {
