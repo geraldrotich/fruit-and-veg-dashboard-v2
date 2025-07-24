@@ -180,7 +180,6 @@
 
     const products = [];
     const vendors = [];
-    let currentOpenKey = null;
 
     function $(id) {
       return document.getElementById(id);
@@ -204,16 +203,11 @@
     window.addVendor = async function() {
       const name = $("vendorName").value.trim();
       if (!name) return alert("Vendor name is required");
-
-      try {
-        await addDoc(collection(db, "vendors"), { name });
-        vendors.push({ name });
-        updateVendorDropdown();
-        updateVendorList();
-        $("vendorName").value = "";
-      } catch (err) {
-        alert("Error saving vendor: " + err.message);
-      }
+      await addDoc(collection(db, "vendors"), { name });
+      vendors.push({ name });
+      updateVendorDropdown();
+      updateVendorList();
+      $("vendorName").value = "";
     };
 
     window.addProduct = async function() {
@@ -222,19 +216,13 @@
       const price = parseFloat($("productPrice").value);
       const type = $("productType").value;
       const vendor = $("vendorSelect").value;
-
       if (!name || !unit || isNaN(price) || !vendor) return alert("Please fill all fields.");
-
-      try {
-        await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
-        products.push({ name, unit, price, type, vendor });
-        updateProductList();
-        $("productName").value = "";
-        $("productUnit").value = "";
-        $("productPrice").value = "";
-      } catch (err) {
-        alert("Error saving product: " + err.message);
-      }
+      await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
+      products.push({ name, unit, price, type, vendor });
+      updateProductList();
+      $("productName").value = "";
+      $("productUnit").value = "";
+      $("productPrice").value = "";
     };
 
     function updateVendorDropdown() {
@@ -288,6 +276,15 @@
       updateVendorList();
     }
 
+    async function loadProducts() {
+      const snapshot = await getDocs(collection(db, "products"));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.name) products.push(data);
+      });
+      updateProductList();
+    }
+
     window.handleSearch = function() {
       const term = $("searchInput").value.toLowerCase();
       const filtered = products.filter(p => p.name.toLowerCase().includes(term));
@@ -295,6 +292,7 @@
     };
 
     loadVendors();
+    loadProducts();
   </script>
 </body>
 </html>
