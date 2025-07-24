@@ -12,15 +12,18 @@
       padding: 0;
       background-color: #f7f7f7;
     }
+
     .container {
       max-width: 1000px;
       margin: auto;
       padding: 20px;
     }
+
     h1 {
       text-align: center;
       margin-bottom: 10px;
     }
+
     a.back-home {
       display: inline-block;
       margin-bottom: 20px;
@@ -30,11 +33,13 @@
       border-radius: 5px;
       text-decoration: none;
     }
+
     .tabs {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
     }
+
     .tab {
       margin: 0 10px;
       padding: 10px 20px;
@@ -42,18 +47,23 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     .tab.active {
       background-color: #008800;
       color: white;
     }
+
     .form-group {
       margin-bottom: 15px;
     }
+
     input, select {
       padding: 8px;
       width: 100%;
       margin-top: 5px;
+      font-family: 'Lexend', sans-serif;
     }
+
     button {
       padding: 8px 12px;
       background-color: #008800;
@@ -61,7 +71,9 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      font-family: 'Lexend', sans-serif;
     }
+
     .clickable {
       cursor: pointer;
       padding: 10px;
@@ -71,38 +83,81 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       transition: background-color 0.2s;
     }
+
     .clickable:hover {
       background-color: #f0f0f0;
       text-decoration: underline;
     }
+
     .hidden {
       display: none;
     }
+
     .list {
       margin-top: 20px;
     }
-    .search-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 12px;
+      color: white;
+      margin-top: 4px;
     }
-    .search-group input {
-      flex: 1;
+
+    .organic {
+      background-color: #008000;
     }
-    .search-group button {
-      flex: 0 0 auto;
+
+    .conventional {
+      background-color: #FFA500;
     }
-    #toggleProductFormBtn {
-      margin-top: 10px;
-      margin-bottom: 10px;
+
+    .imported {
+      background-color: #0066cc;
     }
+
     .details-card {
       background-color: #fff;
       padding: 10px;
       margin-top: 5px;
       border-radius: 5px;
       box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
+
+    .detail-item {
+      margin-bottom: 10px;
+    }
+
+    .action-buttons {
+      margin-top: 6px;
+    }
+
+    .action-buttons button {
+      background-color: #444;
+      margin-right: 6px;
+      font-size: 12px;
+    }
+
+    .search-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .search-group input {
+      flex: 1;
+    }
+
+    .search-group button {
+      flex: 0 0 auto;
+    }
+
+    #toggleProductFormBtn {
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -130,7 +185,7 @@
           <input type="text" id="productName" />
         </div>
         <div class="form-group">
-          <label>Unit (e.g. kg, g, bunch, pnt):</label>
+          <label>Unit (e.g. kg, g, bunch):</label>
           <input type="text" id="productUnit" />
         </div>
         <div class="form-group">
@@ -151,6 +206,7 @@
         </div>
         <button onclick="addProduct()">Add Product</button>
       </div>
+
       <h3>Products</h3>
       <div id="productList" class="list"></div>
     </div>
@@ -165,13 +221,20 @@
       <h3>Vendors</h3>
       <div id="vendorList" class="list"></div>
     </div>
+
+    <div id="detailsSection" class="hidden" style="margin-top: 30px;">
+      <h3 id="detailsTitle"></h3>
+      <div id="detailsContent"></div>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, getDocs
+      getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+    const isAdmin = true;
 
     const firebaseConfig = {
       apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
@@ -187,7 +250,6 @@
 
     const products = [];
     const vendors = [];
-    const openDetails = {};
 
     function $(id) {
       return document.getElementById(id);
@@ -198,6 +260,7 @@
       $("vendorTab").classList.toggle("active", tab === "vendors");
       $("productsSection").classList.toggle("hidden", tab !== "products");
       $("vendorsSection").classList.toggle("hidden", tab !== "vendors");
+      $("detailsSection").classList.add("hidden");
     };
 
     window.toggleProductForm = function() {
@@ -247,39 +310,68 @@
     function updateProductList(filtered = null) {
       const list = $("productList");
       list.innerHTML = "";
-      const grouped = groupBy(filtered || products, "name");
+
+      const grouped = groupBy((filtered || products).sort((a, b) => a.name.localeCompare(b.name)), "name");
+
       for (const name in grouped) {
         const el = document.createElement("div");
         el.className = "clickable";
-        el.innerHTML = `${name} <span style="font-size: 12px; color: gray;">(${grouped[name][0].type})</span>`;
-        el.onclick = () => toggleDetails(name, grouped[name]);
+        el.innerHTML = `${name} <span class="badge ${grouped[name][0].type}">${grouped[name][0].type}</span>`;
+        el.onclick = () => showProductDetails(name);
         list.appendChild(el);
-
-        const card = document.createElement("div");
-        card.className = "details-card hidden";
-        card.id = `details-${name}`;
-        list.appendChild(card);
       }
     }
 
-    function toggleDetails(name, items) {
-      const card = $(`details-${name}`);
-      if (!card) return;
-      const isVisible = !card.classList.contains("hidden");
-      card.classList.toggle("hidden", isVisible);
-      if (isVisible) return;
-      card.innerHTML = items.map(p => `<div><strong>Vendor:</strong> ${p.vendor}, <strong>Unit:</strong> ${p.unit}, <strong>Price:</strong> ${p.price}</div>`).join("<hr>");
+    function showProductDetails(productName) {
+      const matches = products.filter(p => p.name === productName);
+      $("detailsTitle").textContent = `Vendors for: ${productName}`;
+      $("detailsContent").innerHTML = matches.map((p, i) => `
+        <div class="details-card">
+          <div class="detail-item"><strong>Vendor:</strong> ${p.vendor}</div>
+          <div class="detail-item"><strong>Unit:</strong> ${p.unit}</div>
+          <div class="detail-item"><strong>Price:</strong> KES ${p.price.toFixed(2)}</div>
+          <span class="badge ${p.type}">${p.type}</span>
+          ${isAdmin ? `
+            <div class="action-buttons">
+              <button>Edit</button>
+              <button>Delete</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join("");
+      $("detailsSection").classList.remove("hidden");
     }
 
-    function updateVendorList(filtered = null) {
+    function updateVendorList() {
       const list = $("vendorList");
       list.innerHTML = "";
-      (filtered || vendors).forEach(v => {
+      vendors.sort((a, b) => a.name.localeCompare(b.name)).forEach(v => {
         const el = document.createElement("div");
         el.className = "clickable";
         el.textContent = v.name;
+        el.onclick = () => showVendorProducts(v.name);
         list.appendChild(el);
       });
+    }
+
+    function showVendorProducts(vendorName) {
+      const matches = products.filter(p => p.vendor === vendorName);
+      $("detailsTitle").textContent = `Products from: ${vendorName}`;
+      $("detailsContent").innerHTML = matches.map((p, i) => `
+        <div class="details-card">
+          <div class="detail-item"><strong>Product:</strong> ${p.name}</div>
+          <div class="detail-item"><strong>Unit:</strong> ${p.unit}</div>
+          <div class="detail-item"><strong>Price:</strong> KES ${p.price.toFixed(2)}</div>
+          <span class="badge ${p.type}">${p.type}</span>
+          ${isAdmin ? `
+            <div class="action-buttons">
+              <button>Edit</button>
+              <button>Delete</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join("");
+      $("detailsSection").classList.remove("hidden");
     }
 
     function groupBy(arr, key) {
@@ -288,6 +380,12 @@
         return acc;
       }, {});
     }
+
+    window.handleSearch = function() {
+      const term = $("searchInput").value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+      updateProductList(filtered);
+    };
 
     async function loadVendors() {
       const snapshot = await getDocs(collection(db, "vendors"));
@@ -307,12 +405,6 @@
       });
       updateProductList();
     }
-
-    window.handleSearch = function() {
-      const term = $("searchInput").value.toLowerCase();
-      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-      updateProductList(filtered);
-    };
 
     loadVendors();
     loadProducts();
