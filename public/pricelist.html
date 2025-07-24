@@ -139,6 +139,11 @@
     .search-group button {
       flex: 0 0 auto;
     }
+
+    #toggleProductFormBtn {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -158,32 +163,36 @@
 
     <!-- Product Section -->
     <div id="productsSection">
-      <h2>Add Product</h2>
-      <div class="form-group">
-        <label>Product Name:</label>
-        <input type="text" id="productName" />
+      <button onclick="toggleProductForm()" id="toggleProductFormBtn">➕ Add New Product</button>
+
+      <div id="addProductForm" class="hidden">
+        <h2>Add Product</h2>
+        <div class="form-group">
+          <label>Product Name:</label>
+          <input type="text" id="productName" />
+        </div>
+        <div class="form-group">
+          <label>Unit (e.g. kg, g, bunch):</label>
+          <input type="text" id="productUnit" />
+        </div>
+        <div class="form-group">
+          <label>Price:</label>
+          <input type="number" id="productPrice" />
+        </div>
+        <div class="form-group">
+          <label>Type:</label>
+          <select id="productType">
+            <option value="organic">Organic</option>
+            <option value="conventional">Conventional</option>
+            <option value="imported">Imported</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vendor:</label>
+          <select id="vendorSelect"></select>
+        </div>
+        <button onclick="addProduct()">Add Product</button>
       </div>
-      <div class="form-group">
-        <label>Unit (e.g. kg, g, bunch):</label>
-        <input type="text" id="productUnit" />
-      </div>
-      <div class="form-group">
-        <label>Price:</label>
-        <input type="number" id="productPrice" />
-      </div>
-      <div class="form-group">
-        <label>Type:</label>
-        <select id="productType">
-          <option value="organic">Organic</option>
-          <option value="conventional">Conventional</option>
-          <option value="imported">Imported</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Vendor:</label>
-        <select id="vendorSelect"></select>
-      </div>
-      <button onclick="addProduct()">Add Product</button>
 
       <h3>Products</h3>
       <div id="productList" class="list"></div>
@@ -214,6 +223,14 @@
     const products = [];
     const vendors = [];
     let currentOpenKey = null;
+
+    function toggleProductForm() {
+      const form = document.getElementById('addProductForm');
+      const btn = document.getElementById('toggleProductFormBtn');
+      const isHidden = form.classList.contains('hidden');
+      form.classList.toggle('hidden', !isHidden);
+      btn.textContent = isHidden ? '✖ Hide Product Form' : '➕ Add New Product';
+    }
 
     function switchTab(tab) {
       document.getElementById('productTab').classList.toggle('active', tab === 'products');
@@ -377,7 +394,6 @@
     function handleSearch() {
       const term = document.getElementById('searchInput').value.toLowerCase();
       const isProductTab = !document.getElementById('productsSection').classList.contains('hidden');
-
       if (isProductTab) {
         const filtered = products.filter(p => p.name.toLowerCase().includes(term));
         updateProductList(filtered);
