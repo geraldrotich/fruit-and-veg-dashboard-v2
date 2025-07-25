@@ -1,0 +1,123 @@
+body {
+  font-family: 'Lexend', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f7f7f7;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+a.back-home {
+  display: inline-block;
+  margin-bottom: 20px;
+  background-color: #008800;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tab {
+  margin: 0 10px;
+  padding: 10px 20px;
+  background-color: #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background-color: #008800;
+  color: white;
+}
+
+.search-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-group input {
+  flex: 1;
+  padding: 8px;
+}
+
+.search-group button {
+  padding: 8px 12px;
+  background-color: #008800;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+form input,
+form select {
+  padding: 8px;
+  flex: 1 1 200px;
+}
+
+form button {
+  background-color: #008800;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#productList,
+#vendorList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card .tag {
+  display: inline-block;
+  background-color: #eee;
+  color: #444;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  margin-left: 10px;
+  text-transform: capitalize;
+}
+
+.card .details {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.hidden {
+  display: none;
+}

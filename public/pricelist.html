@@ -1,282 +1,55 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pricelist</title>
+  <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Lexend', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f7f7f7;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    a.back-home {
-      display: inline-block;
-      margin-bottom: 20px;
-      background-color: #008800;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 5px;
-      text-decoration: none;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .tab {
-      margin: 0 10px;
-      padding: 10px 20px;
-      background-color: #ddd;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .tab.active {
-      background-color: #008800;
-      color: white;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    input, select {
-      padding: 8px;
-      width: 100%;
-      margin-top: 5px;
-    }
-    button {
-      padding: 8px 12px;
-      background-color: #008800;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .clickable {
-      cursor: pointer;
-      padding: 10px;
-      background-color: white;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      transition: background-color 0.2s;
-    }
-    .clickable:hover {
-      background-color: #f0f0f0;
-    }
-    .hidden {
-      display: none;
-    }
-    .details-card {
-      background-color: #fff;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      box-shadow: 0 0 3px rgba(0,0,0,0.2);
-    }
-  </style>
 </head>
 <body>
   <div class="container">
     <h1>Pricelist</h1>
     <a href="index.html" class="back-home">⬅ Back to Home</a>
 
-    <!-- The rest of the file content has been trimmed for clarity and size -->
-
-  </div>
-</body>
-</html>
-    <div id="vendorsSection" class="hidden">
-      <h2>Add Vendor</h2>
-      <div class="form-group">
-        <label>Vendor Name:</label>
-        <input type="text" id="vendorName" />
-      </div>
-      <button onclick="addVendor()">Add Vendor</button>
-      <h3>Vendors</h3>
-      <div id="vendorList" class="list"></div>
+    <div class="tabs">
+      <div class="tab active" data-tab="products">Products</div>
+      <div class="tab" data-tab="vendors">Vendors</div>
     </div>
+
+    <div class="search-group">
+      <input type="text" id="searchInput" placeholder="Search products..." />
+      <button id="searchButton">Search</button>
+    </div>
+
+    <section id="productsSection">
+      <button id="toggleProductFormBtn">➕ Add New Product</button>
+      <form id="productForm" class="hidden">
+        <h2>Add Product</h2>
+        <input type="text" id="productName" placeholder="Product Name" required />
+        <input type="text" id="productUnit" placeholder="Unit (e.g. kg, bunch)" required />
+        <input type="number" id="productPrice" placeholder="Price" required />
+        <select id="productType">
+          <option value="organic">Organic</option>
+          <option value="conventional">Conventional</option>
+          <option value="imported">Imported</option>
+        </select>
+        <select id="vendorSelect"></select>
+        <button type="submit">Save Product</button>
+      </form>
+      <div id="productList" class="list"></div>
+    </section>
+
+    <section id="vendorsSection" class="hidden">
+      <form id="vendorForm">
+        <h2>Add Vendor</h2>
+        <input type="text" id="vendorName" placeholder="Vendor Name" required />
+        <button type="submit">Add Vendor</button>
+      </form>
+      <div id="vendorList" class="list"></div>
+    </section>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAe9jgT1cD0PhRpLGLK8FWmKsK9Lyj8jKs",
-      authDomain: "fruit-and-veg-dashboard-v2.firebaseapp.com",
-      projectId: "fruit-and-veg-dashboard-v2",
-      storageBucket: "fruit-and-veg-dashboard-v2.firebasestorage.app",
-      messagingSenderId: "742156994835",
-      appId: "1:742156994835:web:2aa617429b65f8717eb2e6"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const products = [];
-    const vendors = [];
-    const openCards = {};
-
-    function $(id) {
-      return document.getElementById(id);
-    }
-
-    window.switchTab = function(tab) {
-      $("productTab").classList.toggle("active", tab === "products");
-      $("vendorTab").classList.toggle("active", tab === "vendors");
-      $("productsSection").classList.toggle("hidden", tab !== "products");
-      $("vendorsSection").classList.toggle("hidden", tab !== "vendors");
-    };
-
-    window.toggleProductForm = function () {
-      const form = $("addProductForm");
-      const btn = $("toggleProductFormBtn");
-      const isHidden = form.classList.contains("hidden");
-      form.classList.toggle("hidden", !isHidden);
-      btn.textContent = isHidden ? "✖ Hide Product Form" : "➕ Add New Product";
-    };
-
-    window.addVendor = async function () {
-      const name = $("vendorName").value.trim();
-      if (!name) return alert("Vendor name is required");
-      await addDoc(collection(db, "vendors"), { name });
-      vendors.push({ name });
-      updateVendorDropdown();
-      updateVendorList();
-      $("vendorName").value = "";
-    };
-    window.addProduct = async function () {
-      const name = $("productName").value.trim();
-      const unit = $("productUnit").value.trim();
-      const price = parseFloat($("productPrice").value);
-      const type = $("productType").value;
-      const vendor = $("vendorSelect").value;
-      if (!name || !unit || isNaN(price) || !vendor) return alert("Please fill all fields.");
-      await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
-      products.push({ name, unit, price, type, vendor });
-      updateProductList();
-      $("productName").value = "";
-      $("productUnit").value = "";
-      $("productPrice").value = "";
-    };
-
-    function updateVendorDropdown() {
-      const select = $("vendorSelect");
-      select.innerHTML = "";
-      vendors.forEach(v => {
-        const option = document.createElement("option");
-        option.value = v.name;
-        option.textContent = v.name;
-        select.appendChild(option);
-      });
-    }
-
-    function groupBy(arr, key) {
-      return arr.reduce((acc, obj) => {
-        (acc[obj[key]] = acc[obj[key]] || []).push(obj);
-        return acc;
-      }, {});
-    }
-
-    function updateProductList(filtered = null) {
-      const list = $("productList");
-      list.innerHTML = "";
-      const grouped = groupBy((filtered || products).sort((a, b) => a.name.localeCompare(b.name)), "name");
-      for (const name in grouped) {
-        const el = document.createElement("div");
-        const tagClass = `tag ${grouped[name][0].type}`;
-        el.className = "clickable";
-        el.innerHTML = `${name} <span class="${tagClass}">${grouped[name][0].type}</span>`;
-        el.onclick = () => toggleCard(`product-${name}`, grouped[name], "product");
-        list.appendChild(el);
-
-        const card = document.createElement("div");
-        card.className = "details-card hidden";
-        card.id = `product-${name}`;
-        list.appendChild(card);
-      }
-    }
-
-    function toggleCard(cardId, items, mode) {
-      const card = $(cardId);
-      if (!card) return;
-      const isVisible = !card.classList.contains("hidden");
-      card.classList.toggle("hidden", isVisible);
-      if (isVisible) return;
-
-      card.innerHTML = items.map(p =>
-        `<div style="margin-bottom:10px;">
-          <div><strong>Vendor:</strong> ${p.vendor}</div>
-          <div><strong>Unit:</strong> ${p.unit}</div>
-          <div><strong>Price:</strong> ${p.price}</div>
-          <button onclick="alert('Edit coming soon')">Edit</button>
-          <button onclick="alert('Delete coming soon')">Delete</button>
-        </div>`
-      ).join("<hr>");
-    }
-
-    function updateVendorList() {
-      const list = $("vendorList");
-      list.innerHTML = "";
-      vendors.sort((a, b) => a.name.localeCompare(b.name)).forEach(v => {
-        const el = document.createElement("div");
-        el.className = "clickable";
-        el.innerHTML = v.name;
-        el.onclick = () => {
-          const filtered = products.filter(p => p.vendor === v.name);
-          const id = `vendor-${v.name}`;
-          toggleCard(id, filtered, "vendor");
-        };
-        list.appendChild(el);
-
-        const card = document.createElement("div");
-        card.className = "details-card hidden";
-        card.id = `vendor-${v.name}`;
-        list.appendChild(card);
-      });
-    }
-
-    window.handleSearch = function () {
-      const term = $("searchInput").value.toLowerCase();
-      const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-      updateProductList(filtered);
-    };
-
-    async function loadVendors() {
-      const snapshot = await getDocs(collection(db, "vendors"));
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.name) vendors.push({ name: data.name });
-      });
-      updateVendorDropdown();
-      updateVendorList();
-    }
-
-    async function loadProducts() {
-      const snapshot = await getDocs(collection(db, "products"));
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.name) products.push(data);
-      });
-      updateProductList();
-    }
-
-    loadVendors();
-    loadProducts();
-  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
