@@ -1,7 +1,6 @@
-// app.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, deleteDoc, doc
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,147 +15,152 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const products = [];
-const vendors = [];
+let products = [];
+let productMap = new Map(); // productId → productData
 
-document.addEventListener("DOMContentLoaded", () => {
-  initTabs();
-  loadVendors();
-  loadProducts();
-  document.getElementById("addProductForm").addEventListener("submit", handleAddProduct);
-  document.getElementById("vendorForm").addEventListener("submit", handleAddVendor);
-  document.getElementById("searchButton").addEventListener("click", handleSearch);
+const $ = id => document.getElementById(id);
+
+// TABS
+const productTab = $("productTab");
+const vendorTab = $("vendorTab");
+const productsSection = $("productsSection");
+const vendorsSection = $("vendorsSection");
+
+productTab.onclick = () => {
+  productTab.classList.add("active");
+  vendorTab.classList.remove("active");
+  productsSection.style.display = "block";
+  vendorsSection.style.display = "none";
+};
+
+vendorTab.onclick = () => {
+  vendorTab.classList.add("active");
+  productTab.classList.remove("active");
+  vendorsSection.style.display = "block";
+  productsSection.style.display = "none";
+};
+
+// ADD PRODUCT
+$("addProductForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("productName").value.trim();
+  const unit = $("productUnit").value.trim();
+  const price = parseFloat($("productPrice").value);
+  const type = $("productType").value;
+  const vendor = $("productVendor").value.trim();
+
+  if (!name || !unit || !vendor || isNaN(price)) return alert("All fields required");
+
+  const docRef = await addDoc(collection(db, "products"), { name, unit, price, type, vendor });
+  products.push({ id: docRef.id, name, unit, price, type, vendor });
+  productMap.set(docRef.id, { name, unit, price, type, vendor });
+  $("addProductForm").reset();
+  renderProducts();
+  renderVendors();
 });
 
-function initTabs() {
-  document.getElementById("productTab").addEventListener("click", () => switchTab("products"));
-  document.getElementById("vendorTab").addEventListener("click", () => switchTab("vendors"));
-}
-
-function switchTab(tab) {
-  document.getElementById("productsSection").style.display = tab === "products" ? "block" : "none";
-  document.getElementById("vendorsSection").style.display = tab === "vendors" ? "block" : "none";
-  document.getElementById("productTab").classList.toggle("active", tab === "products");
-  document.getElementById("vendorTab").classList.toggle("active", tab === "vendors");
-}
-
-function handleAddProduct(e) {
-  e.preventDefault();
-  const name = document.getElementById("productName").value.trim();
-  const unit = document.getElementById("productUnit").value.trim();
-  const price = parseFloat(document.getElementById("productPrice").value);
-  const type = document.getElementById("productType").value;
-  const vendor = document.getElementById("productVendor").value.trim();
-
-  if (!name || !unit || isNaN(price) || !type || !vendor) return alert("Fill all fields");
-
-  const product = { name, unit, price, type, vendor };
-  addDoc(collection(db, "products"), product).then(() => {
-    products.push(product);
-    renderProducts();
-    document.getElementById("addProductForm").reset();
-  });
-}
-
-function handleAddVendor(e) {
-  e.preventDefault();
-  const vendorName = document.getElementById("vendorName").value.trim();
-  if (!vendorName) return alert("Vendor name required");
-
-  const vendor = { name: vendorName };
-  addDoc(collection(db, "vendors"), vendor).then(() => {
-    vendors.push(vendor);
-    renderVendors();
-    document.getElementById("vendorForm").reset();
-  });
-}
-
-function handleSearch() {
-  const term = document.getElementById("searchInput").value.toLowerCase();
+// SEARCH
+$("searchButton").addEventListener("click", () => {
+  const term = $("searchInput").value.toLowerCase();
   const filtered = products.filter(p => p.name.toLowerCase().includes(term));
   renderProducts(filtered);
-}
+});
 
-async function loadVendors() {
-  const snap = await getDocs(collection(db, "vendors"));
-  snap.forEach(doc => {
-    const data = doc.data();
-    if (data.name) vendors.push(data);
-  });
-  renderVendors();
-}
-
-async function loadProducts() {
-  const snap = await getDocs(collection(db, "products"));
-  snap.forEach(doc => {
-    const data = doc.data();
-    if (data.name) products.push(data);
-  });
-  renderProducts();
-}
-
-function renderProducts(filtered = null) {
-  const list = document.getElementById("productList");
+// RENDER PRODUCTS
+function renderProducts(data = products) {
+  const list = $("productList");
   list.innerHTML = "";
-  const grouped = groupBy(filtered || products, "name");
 
-  Object.keys(grouped).sort().forEach(name => {
-    const group = grouped[name];
-    const header = document.createElement("div");
-    header.className = "card";
-    header.innerHTML = `
-      ${name}
-      <span class="tag ${group[0].type}">${group[0].type}</span>
+  const grouped = groupBy(data, "name");
+  const sortedNames = Object.keys(grouped).sort();
+
+  for (const name of sortedNames) {
+    const items = grouped[name];
+    const container = document.createElement("div");
+    container.className = "card clickable";
+    container.innerHTML = `
+      <strong>${name}</strong>
+      <span class="tag ${items[0].type}">${items[0].type}</span>
     `;
-    header.addEventListener("click", () => {
+    container.onclick = () => {
       card.classList.toggle("hidden");
-    });
+    };
 
     const card = document.createElement("div");
     card.className = "details hidden";
-    card.innerHTML = group.map(p => `
-      <div><strong>Vendor:</strong> ${p.vendor}</div>
-      <div><strong>Unit:</strong> ${p.unit}</div>
-      <div><strong>Price:</strong> ${p.price}</div>
-      <button class="edit">✏️ Edit</button>
-      <button class="delete">🗑 Delete</button>
-      <hr>
+    card.innerHTML = items.map(p => `
+      <div>
+        <div><strong>Vendor:</strong> ${p.vendor}</div>
+        <div contenteditable="true" onblur="updateField('${p.id}', 'unit', this.textContent)">Unit: ${p.unit}</div>
+        <div contenteditable="true" onblur="updateField('${p.id}', 'price', this.textContent)">Price: ${p.price}</div>
+        <button onclick="confirmDelete('${p.id}')">🗑 Delete</button>
+      </div><hr>
     `).join("");
 
-    list.appendChild(header);
+    list.appendChild(container);
     list.appendChild(card);
-  });
+  }
 }
 
+// RENDER VENDORS
 function renderVendors() {
-  const list = document.getElementById("vendorList");
+  const list = $("vendorList");
   list.innerHTML = "";
 
-  vendors.sort((a, b) => a.name.localeCompare(b.name)).forEach(v => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.textContent = v.name;
-    card.addEventListener("click", () => {
-      const vendorProducts = products.filter(p => p.vendor === v.name);
-      detail.innerHTML = vendorProducts.map(p => `
-        <div><strong>Product:</strong> ${p.name}</div>
-        <div><strong>Unit:</strong> ${p.unit}</div>
-        <div><strong>Price:</strong> ${p.price}</div><hr>
-      `).join("");
-      detail.classList.toggle("hidden");
-    });
+  const grouped = groupBy(products, "vendor");
+  const sortedVendors = Object.keys(grouped).sort();
 
-    const detail = document.createElement("div");
-    detail.className = "details hidden";
-    list.appendChild(card);
-    list.appendChild(detail);
+  sortedVendors.forEach(vendor => {
+    const el = document.createElement("div");
+    el.className = "card clickable";
+    el.innerHTML = `<strong>${vendor}</strong>`;
+    el.onclick = () => {
+      details.classList.toggle("hidden");
+    };
+
+    const details = document.createElement("div");
+    details.className = "details hidden";
+    details.innerHTML = grouped[vendor].map(p => `
+      <div><strong>${p.name}</strong> - ${p.unit} @ ${p.price}</div>
+    `).join("<hr>");
+
+    list.appendChild(el);
+    list.appendChild(details);
   });
 }
 
+// HELPER FUNCTIONS
 function groupBy(arr, key) {
   return arr.reduce((acc, obj) => {
-    acc[obj[key]] = acc[obj[key]] || [];
-    acc[obj[key]].push(obj);
+    (acc[obj[key]] ||= []).push(obj);
     return acc;
   }, {});
 }
+
+window.updateField = async (id, field, value) => {
+  const docRef = doc(db, "products", id);
+  await updateDoc(docRef, { [field]: field === "price" ? parseFloat(value) : value });
+};
+
+window.confirmDelete = async id => {
+  if (!confirm("Delete this product?")) return;
+  await deleteDoc(doc(db, "products", id));
+  products = products.filter(p => p.id !== id);
+  renderProducts();
+  renderVendors();
+};
+
+// LOAD PRODUCTS
+async function loadProducts() {
+  const snapshot = await getDocs(collection(db, "products"));
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const p = { id: docSnap.id, ...data };
+    products.push(p);
+    productMap.set(p.id, p);
+  });
+  renderProducts();
+  renderVendors();
+}
+
+loadProducts();
