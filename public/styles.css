@@ -1,39 +1,40 @@
+/* styles.css */
 body {
   font-family: 'Lexend', sans-serif;
+  background-color: #f7f7f7;
   margin: 0;
   padding: 0;
-  background-color: #f7f7f7;
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 900px;
   margin: auto;
   padding: 20px;
 }
 
-h1 {
+h1, h2 {
   text-align: center;
-  margin-bottom: 10px;
+  color: #333;
 }
 
-a.back-home {
+.back-home {
   display: inline-block;
-  margin-bottom: 20px;
   background-color: #008800;
   color: white;
   padding: 8px 16px;
   border-radius: 5px;
   text-decoration: none;
+  margin-bottom: 20px;
 }
 
 .tabs {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin: 20px 0;
 }
 
 .tab {
-  margin: 0 10px;
   padding: 10px 20px;
   background-color: #ddd;
   border-radius: 5px;
@@ -48,7 +49,7 @@ a.back-home {
 .search-group {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .search-group input {
@@ -61,61 +62,88 @@ a.back-home {
   background-color: #008800;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
 form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   margin-bottom: 20px;
 }
 
-form input,
-form select {
-  padding: 8px;
-  flex: 1 1 200px;
+form input, form select {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-form button {
-  background-color: #008800;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#productList,
-#vendorList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+form#vendorForm input {
+  width: 60%;
+  display: inline-block;
+  margin-right: 10px;
 }
 
 .card {
   background-color: white;
   border-radius: 6px;
-  padding: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.card .tag {
+.card:hover {
+  background-color: #f0f0f0;
+}
+
+.details {
+  background: #fafafa;
+  padding: 10px;
+  margin-top: 8px;
+  border-left: 3px solid #008800;
+  border-radius: 5px;
+}
+
+.tag {
   display: inline-block;
-  background-color: #eee;
-  color: #444;
-  padding: 2px 6px;
-  font-size: 12px;
+  padding: 2px 8px;
   border-radius: 4px;
-  margin-left: 10px;
+  font-size: 12px;
+  margin-left: 8px;
   text-transform: capitalize;
 }
 
-.card .details {
-  margin-top: 5px;
+.tag.organic {
+  background-color: #d1f7c4;
+  color: #2e7d32;
+}
+
+.tag.conventional {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.tag.imported {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+button.delete, button.edit {
+  background-color: transparent;
+  border: none;
+  color: #008800;
+  cursor: pointer;
   font-size: 14px;
-  color: #555;
+  margin-left: 8px;
+}
+
+button.delete:hover {
+  color: red;
 }
 
 .hidden {

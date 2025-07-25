@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pricelist</title>
-  <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
@@ -13,41 +13,45 @@
     <a href="index.html" class="back-home">⬅ Back to Home</a>
 
     <div class="tabs">
-      <div class="tab active" data-tab="products">Products</div>
-      <div class="tab" data-tab="vendors">Vendors</div>
+      <div class="tab active" id="productTab">Products</div>
+      <div class="tab" id="vendorTab">Vendors</div>
     </div>
 
+    <!-- Search -->
     <div class="search-group">
       <input type="text" id="searchInput" placeholder="Search products..." />
       <button id="searchButton">Search</button>
     </div>
 
-    <section id="productsSection">
-      <button id="toggleProductFormBtn">➕ Add New Product</button>
-      <form id="productForm" class="hidden">
+    <!-- Products Section -->
+    <div id="productsSection">
+      <form id="addProductForm">
         <h2>Add Product</h2>
         <input type="text" id="productName" placeholder="Product Name" required />
-        <input type="text" id="productUnit" placeholder="Unit (e.g. kg, bunch)" required />
+        <input type="text" id="productUnit" placeholder="Unit (e.g. kg, g, bunch)" required />
         <input type="number" id="productPrice" placeholder="Price" required />
         <select id="productType">
           <option value="organic">Organic</option>
           <option value="conventional">Conventional</option>
           <option value="imported">Imported</option>
         </select>
-        <select id="vendorSelect"></select>
-        <button type="submit">Save Product</button>
+        <input type="text" id="productVendor" placeholder="Vendor Name" required />
+        <button type="submit">Add Product</button>
       </form>
-      <div id="productList" class="list"></div>
-    </section>
+      <h3>Products</h3>
+      <div id="productList"></div>
+    </div>
 
-    <section id="vendorsSection" class="hidden">
+    <!-- Vendors Section -->
+    <div id="vendorsSection" style="display: none;">
       <form id="vendorForm">
         <h2>Add Vendor</h2>
-        <input type="text" id="vendorName" placeholder="Vendor Name" required />
+        <input type="text" id="vendorName" placeholder="Vendor Name" style="max-width: 300px;" required />
         <button type="submit">Add Vendor</button>
       </form>
-      <div id="vendorList" class="list"></div>
-    </section>
+      <h3>Vendors</h3>
+      <div id="vendorList"></div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>
