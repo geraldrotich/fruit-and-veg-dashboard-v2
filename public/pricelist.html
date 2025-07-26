@@ -2,48 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pricelist</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
+  <link href="styles.css" rel="stylesheet" />
 </head>
 <body>
-  <h1>Pricelist</h1>
-  <a href="index.html" class="back-home">⬅ Back to Home</a>
+  <div class="container">
+    <h1>Pricelist</h1>
+    <a href="index.html" class="back-home">⬅ Back to Home</a>
 
-  <div class="tabs">
-    <div class="tab active" id="productTab">Products</div>
-    <div class="tab" id="vendorTab">Vendors</div>
-  </div>
+    <div class="tabs">
+      <div class="tab active" id="productTab" onclick="switchTab('products')">Products</div>
+      <div class="tab" id="vendorTab" onclick="switchTab('vendors')">Vendors</div>
+    </div>
 
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search products..." />
-    <button id="searchButton">Search</button>
-  </div>
+    <button id="toggleAddProductBtn">➕ Add New Product</button>
 
-  <div id="productsSection">
-    <form id="addProductForm">
-      <h3>Add Product</h3>
-      <input type="text" id="productName" placeholder="Product Name" required />
-      <input type="text" id="productUnit" placeholder="Unit (e.g. kg, g, bunch)" required />
-      <input type="number" id="productPrice" placeholder="Price" required />
-      <select id="productType">
-        <option value="organic">Organic</option>
-        <option value="conventional">Conventional</option>
-        <option value="imported">Imported</option>
-      </select>
-      <input type="text" id="productVendor" placeholder="Vendor" required />
-      <button type="submit">Add Product</button>
+    <form id="addProductForm" style="display: none;">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="productName" required />
+      </div>
+      <div class="form-group">
+        <label>Unit</label>
+        <input type="text" id="productUnit" required />
+      </div>
+      <div class="form-group">
+        <label>Price</label>
+        <input type="number" id="productPrice" required />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="productType">
+          <option value="organic">Organic</option>
+          <option value="conventional">Conventional</option>
+          <option value="imported">Imported</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Vendor</label>
+        <select id="productVendor"></select>
+      </div>
+      <button type="button" onclick="addProduct()">Add Product</button>
     </form>
 
-    <h3>All Products</h3>
-    <div id="productList"></div>
+    <div id="productList" class="list"></div>
+    <div id="vendorList" class="list"></div>
   </div>
-
-  <div id="vendorsSection" style="display: none;">
-    <h3>All Vendors</h3>
-    <div id="vendorList"></div>
-  </div>
-
   <script type="module" src="app.js"></script>
 </body>
 </html>
